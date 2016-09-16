@@ -1,0 +1,1044 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<div class="summary"
+  xmlns:h="http://java.sun.com/jsf/html"
+  xmlns:a4j="http://richfaces.org/a4j"
+  xmlns:nxl="http://nuxeo.org/nxforms/layout">
+
+  <script type="text/javascript" src="INSERT_BPMN_JS_UTILS_URL_HERE/tab_js_browserified.js"></script>
+
+  <div id="dataOutputDiv" style="display: none;">
+    <a4j:region id="documentViewRegion">
+      <a4j:outputPanel id="documentViewPanel" layout="block">
+        <nxl:layout value="#{currentDocument}" mode="view" name="extWorkflowTab@tabLayout" />
+      </a4j:outputPanel>
+    </a4j:region>
+  </div>
+
+  <script type="text/javascript">
+  //<![CDATA[
+    // URL configuration
+    var CAMUNDA_URL = 'INSERT_CAMUNDA_URL_HERE';
+    var CAMUNDA_REST_URL = 'INSERT_CAMUNDA_REST_URL_HERE';
+    var PROCESS_BASE_URL = 'INSERT_PROCESS_BASE_URL_HERE';
+    var BPMN_JS_URL = 'INSERT_BPMN_JS_UTILS_URL_HERE/bpmn-iframe.html';
+    var NUXEO_API_URL = 'INSERT_NUXEO_URL_HEREapi/v1/';
+    var SHINDIG_URL = 'INSERT_SHINDIG_URL_HERE';
+    var PROFILE_URL = 'INSERT_PROFILE_URL_HERE';
+
+    // temporarily stored workflow definitions, active workflows and tasks
+    var fWorkflowDefs = null;
+    var fWorkflows = new Array();
+    var fTasks = new Array();
+
+    var fFormVariables = null;
+
+    var fFormSubmitButton = null;
+    var fSelectedWorkflow = null;
+    var fSelectedTask = null;
+
+    var fHistory = null;
+    var fHistoryProcIds = null;
+    var fHistoryProcNames = null;
+    var fHistoryUserNames = null;
+    var fFirstResult = 0;
+    var fMaxResults = 20;
+
+    var fDocPath;
+    var fDocType;
+    var fLinkedWorkflows = null;
+
+    //// utility functions
+
+    // utility function to get the document's ID from its HTML field
+    function getDocumentId()
+    {
+      return document.getElementById('nxl_extWorkflowTab_tabLayout:nxw_sub0_4').innerHTML;
+    }
+
+    /*
+     *  refreshes the document's active workflows before initializing the workflows tab,
+     *  retrieving definitions, active worklofws and tasks through several callbacks
+     */
+    function workflowsInit()
+    {
+      //refresh workflow data
+      var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.RefreshWorkflows';
+      var payload = new Object();
+      sendRequest('POST', url, refreshCallback, payload);
+
+      //TODO: general error handling
+    }
+
+    // wrapper refreshing the available worklfow definitons after a successful workflows refresh
+    function refreshCallback(response)
+    {
+      getWorkflowDefinitions('*linked*');
+    }
+
+    // callback only displaying an error or success dialog
+    function nopCallback(response)
+    {
+      if(response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        alert('success - please refresh this page');
+      }
+    }
+
+    /*
+     *  Sends an HTTP request with the given method (GET, POST, ...) to the
+     *  given URL, executing the given callback on receiving a response.
+     *  If a payload object is given, it will be sent as JSON.
+     *  In case of an error the "error" property is set on the response,
+     *  containing a message.
+     */
+    function sendRequest(method, url, callback, payload)
+    {
+      var xhr = new XMLHttpRequest();
+
+      xhr.open(method, url, true);
+      //xhr.responseType = 'json';
+
+      xhr.onreadystatechange = function()
+      {
+        if(xhr.readyState == 4)
+        {
+          if(xhr.status == 200)
+          {
+            callback(JSON.parse(xhr.response));
+          }
+          else
+          {
+            console.log('Camunda tab:\n'
+            + 'Error ' + xhr.status + ': ' + xhr.statusText);
+
+            var message = new Object();
+            message.error = 'Error ' + xhr.status + ': ' + xhr.statusText;
+            callback(message);
+          }
+        }
+      }
+
+      if(payload)
+      {
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(payload));
+      }
+      else
+      {
+        xhr.send();
+      }
+    }
+
+    // empties both "camundaIframe" and "hideButtonDiv"
+    function hideIframe()
+    {
+      document.getElementById('camundaIframe').innerHTML = '';
+      document.getElementById('hideButtonDiv').innerHTML = '';
+    }
+
+    //// operations opening external sites
+
+    //opens the selected active workflow in camunda in a new window
+    function openCamundaWorkflow()
+    {
+      var url = CAMUNDA_URL;
+
+      //process link
+      url += 'app/cockpit/default/#/process-instance/';
+      url += document.getElementById('workflowSelector').value;
+      url += '/runtime';
+
+      //open in new tab/window
+      window.open(url,'_blank');
+    }
+
+    //opens the selected active task in camunda in a new window
+    function openCamundaTask()
+    {
+      var url = CAMUNDA_URL;
+
+      //task link
+      url += 'app/tasklist/default/#/?task=';
+      url += document.getElementById('taskSelector').value;
+
+      //open in new tab/window
+      window.open(url,'_blank');
+    }
+
+    //// workflow start form and task form operations
+
+    /*
+     *  shows the the start form for the selected workflow definition, with an option to start it
+     *  gets it via a REST call - callback renders it to "camundaIframe"
+     */
+    function showStartForm()
+    {
+      //prepare button to post
+      fFormSubmitButton = '<button type="button" onclick="workflowWithVariables()">start Workflow</button>';
+
+      //cache selected Worklfow
+      fSelectedWorkflow = document.getElementById('workflowDefinitionSelector').value;
+
+      var url = CAMUNDA_REST_URL + 'form-data?definitionId=';
+      url += fSelectedWorkflow;
+
+      sendRequest('GET', url, showFormVariables, null);
+    }
+
+    /*
+     *  shows the the form for the selected task, with an option to complete it
+     *  gets it via a REST call - callback renders it to "camundaIframe"
+     */
+    function showTaskForm()
+    {
+      //prepare button to post
+      fFormSubmitButton = '<button type="button" onclick="taskWithVariables()">complete Task</button>';
+
+      //cache selected Task
+      fSelectedTask = document.getElementById('taskSelector').value;
+
+      var url = CAMUNDA_REST_URL + 'form-data?taskId=';
+      url += fSelectedTask;
+
+      sendRequest('GET', url, showFormVariables, null);
+    }
+
+    // shows the form variables from the given response in "camundaIframe"
+    function showFormVariables(response)
+    {
+      var html = '<h3>Form</h3>';
+
+      fFormVariables = response;
+
+      //show the received form variables
+      fFormVariables.forEach(function(property)
+      {
+        //read information
+        var id = property.id;
+        var label = property.label;
+        var type = property.type;
+        var value = property.value;
+
+        if(value == null)
+        {
+          value = '';
+        }
+
+        //TODO: support for other types
+
+        //add to form
+        html += '<label for="form_' + id + '">' + label + ':</label>';
+        html += '<input type="text" size="30" id="form_' + id + '" value="' + value + '"/>';
+        html += '<br/>';
+      });
+
+      html += fFormSubmitButton;
+      html += '<button type="button" onclick="hideIframe()">hide Form</button>';
+
+      document.getElementById('camundaIframe').innerHTML = html;
+    }
+
+    //// functions supplying the default controls (workflow definitions, workflows, tasks)
+
+    /*
+     *  gets the workflow definitions of the given category, with a callback adding options to "workflowDefinitionSelector"
+     *  if the category is null or "*", all categories will be queried
+     *  if the category is "*linked*", document type and path will be retrieved first, linked definitions via a wrapper callback
+     */
+    function getWorkflowDefinitions(category)
+    {
+      var url = CAMUNDA_REST_URL + 'process-definition?latestVersion=true';
+      var callback = workflowDefinitionsCallback;
+
+      if(category != null
+        && category == '*linked*')
+      {
+        url = NUXEO_API_URL + 'id/' + getDocumentId();
+        callback = linkedWorkflowsWrapper;
+      }
+      else if(category != null
+        && category != '*')
+      {
+        url += '&category=' + category;
+      }
+
+      sendRequest('GET', url, callback, null);
+    }
+
+    // wrapper using the data from a document request to request linked workflow definitions
+    function linkedWorkflowsWrapper(response)
+    {
+      var url = CAMUNDA_REST_URL + 'nuxeo-links?latestVersion=true';
+
+      url += '&type=' + response.type;
+      url += '&path=' + response.path;
+
+      sendRequest('GET', url, workflowDefinitionsCallback, null);
+    }
+
+    /*
+     *  callback presenting the received workflow definitions in the "workflowDefinitionSelector"
+     *  triggers the retrieval of active workflows' names
+     */
+    function workflowDefinitionsCallback(response)
+    {
+      //drop previous entries
+      var defSel = document.getElementById('workflowDefinitionSelector');
+      var i = 0;
+      for(i=defSel.options.length-1; i>=0; i--)
+      {
+          defSel.remove(i);
+      }
+
+      fWorkflowDefs = response;
+
+      //workflow definition selector
+      var defSel = document.getElementById('workflowDefinitionSelector');
+      fWorkflowDefs.forEach(function(entry)
+      {
+        var option = document.createElement("option");
+        option.text = entry.id;
+        option.label = entry.name;
+
+        defSel.add(option);
+      });
+
+      getWorkflowNames();
+    }
+
+    /*
+     *  gets the workflow IDs from the document's metadata via its HTML fields
+     *  and retrieves the corresponding names from Camunda
+     */
+    function getWorkflowNames()
+    {
+      //collect IDs from properties
+      var index = 0;
+      var wfId = document.getElementById('nxl_extWorkflowTab_tabLayout:nxw_sub0_form:nxw_sub0:' + index + ':nxw_sub0_1');
+
+      while(wfId != null)
+      {
+        var workflow = new Object();
+        workflow.id = wfId.innerHTML;
+        fWorkflows.push(workflow);
+
+
+        index += 1;
+        wfId = document.getElementById('nxl_extWorkflowTab_tabLayout:nxw_sub0_form:nxw_sub0:' + index + ':nxw_sub0_1');
+      }
+
+      if(fWorkflows.length != 0)
+      {
+        //form request to camunda to retrieve definition IDs
+        var url = CAMUNDA_REST_URL + 'process-instance?processInstanceIds=';
+
+        //comma separated list
+        fWorkflows.forEach(function(entry)
+        {
+          url += entry.id + ',';
+        });
+        url = url.substring(0, url.length - 1);
+
+
+        sendRequest('GET', url, workflowNamesCallback, null);
+      }
+      else
+      {
+        workflowNamesCallback(fWorkflows);
+      }
+    }
+
+    // displays retrieved workflow names in "workflowSelector" and triggers the retrieval of active tasks
+    function workflowNamesCallback(response)
+    {
+      fWorkflows = response;
+
+      //trigger task name retrieval
+      getTaskNames();
+
+      //workflow instance selector
+      var flowSel = document.getElementById('workflowSelector');
+      fWorkflows.forEach(function(entry)
+      {
+        var option = document.createElement("option");
+        option.text = entry.id;
+
+        //get matching definition name
+        fWorkflowDefs.forEach(function(def)
+        {
+          if(entry.definitionId == def.id)
+          {
+            option.label = def.name + ' (' + entry.id + ')';
+          }
+        });
+
+        flowSel.add(option);
+      });
+    }
+
+    // retrieves the active tasks for all active workflows, one request for each active workflow
+    function getTaskNames()
+    {
+      if(fWorkflows.length != 0)
+      {
+        //form requests to camunda to retrieve tasks for all workflows
+        fWorkflows.forEach(function(entry)
+        {
+          var url = CAMUNDA_REST_URL + 'task?processInstanceId=';
+          url += entry.id;
+
+          sendRequest('GET', url, taskNamesCallback, null);
+        });
+      }
+      else
+      {
+        taskNamesCallback(fTasks);
+      }
+    }
+
+    // adds the retrieved tasks to the "taskSelector"
+    function taskNamesCallback(response)
+    {
+      fTasks = response;
+
+      //task instance selector
+      var taskSel = document.getElementById('taskSelector');
+      response.forEach(function(entry)
+      {
+        var option = document.createElement("option");
+        option.text = entry.id;
+        option.label = entry.name + ' (' + entry.id + ')';
+
+        taskSel.add(option);
+      });
+    }
+
+    //// BPMN display functions
+
+    /*
+     *  adds an iFrame with a BPMN XML renderer, passing the BPMN URL of the
+     *  selected workflow through query parameters in the URL
+     */
+    function showBpmn()
+    {
+      var url = CAMUNDA_REST_URL + 'process-definition/';
+      url += document.getElementById('workflowDefinitionSelector').value;
+      url += '/xml';
+
+      //set iFrame contents
+      url = BPMN_JS_URL + '?url=' + url;
+      var iFrame = '<iframe src="' + url + '" width="100%" height="720px" style="border:none"></iframe>';
+      document.getElementById('camundaIframe').innerHTML = iFrame;
+
+      //add button to hide again
+      var html = '<button type="button" onclick="hideIframe()">hide Camunda</button>';
+      document.getElementById('hideButtonDiv').innerHTML = html;
+    }
+
+    /*
+     *  adds an iFrame with a BPMN XML renderer, passing the BPMN URL of the
+     *  selected task's workflow and ID through query parameters in the URL
+     */
+    function showHighlightedBpmn()
+    {
+      var task_id = document.getElementById('taskSelector').value;;
+      var task_key = '';
+      var proc_def = '';
+
+      //task instance selector
+      fTasks.forEach(function(entry)
+      {
+        if(entry.id == task_id)
+        {
+          task_key = entry.taskDefinitionKey;
+          proc_def = entry.processDefinitionId;
+        }
+      });
+
+      var url = CAMUNDA_REST_URL + 'process-definition/';
+      url += proc_def;
+      url += '/xml';
+
+      //set iFrame contents
+      url = BPMN_JS_URL + '?task=' + task_key + '&url=' + url;
+      var iFrame = '<iframe src="' + url + '" width="100%" height="720px" style="border:none"></iframe>';
+      document.getElementById('camundaIframe').innerHTML = iFrame;
+
+      //add button to hide again
+      var html = '<button type="button" onclick="hideIframe()">hide Camunda</button>';
+      document.getElementById('hideButtonDiv').innerHTML = html;
+    }
+
+    //// workflow starting, deleting, task completing operations
+
+    // informs the user about the response for his workflow start request
+    function workflowStartCallback(response)
+    {
+      if(response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        alert('success - please refresh this page');
+      }
+    }
+
+    // informs the user about the response for his workflow deletion request
+    function workflowDeletionCallback(response)
+    {
+      if(response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        alert('success - workflow deleted');
+      }
+    }
+
+    // informs the user about the response for his task completions request
+    function completeTaskCallback(response)
+    {
+      if(response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        //refresh current task
+        var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.RefreshWorkflows';
+        var payload = new Object();
+        sendRequest('POST', url, nopCallback, payload);
+      }
+    }
+
+    // after a confirmations, terminates the selected workflow
+    function deleteCamundaWorkflow()
+    {
+      if(!confirm('Are you sure you want to delete this workflow and all of its tasks?'))
+      {
+        return;
+      }
+
+      var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.DeleteWorkflow';
+
+      var payload = new Object();
+      var params = new Object();
+      params.workflowId = document.getElementById('workflowSelector').value;
+      payload.params = params;
+
+      //delete
+      sendRequest('POST', url, workflowDeletionCallback, payload);
+    }
+
+    // starts the selected workflow with the variables from the displayed form
+    function workflowWithVariables()
+    {
+      //start workflow, submitting variables
+      var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.StartWorkflow';
+
+      var payload = new Object();
+      var params = new Object();
+
+      //collect data from form
+      var camundaParams = new Object();
+      fFormVariables.forEach(function(property)
+      {
+        camundaParams[property.id] = document.getElementById('form_' + property.id).value;
+      });
+      params.camundaParams = camundaParams;
+
+      //overwrite basic IDs
+      params.workflowId = fSelectedWorkflow;
+      params.workflowInstanceId = 'unused';
+
+      payload.params = params;
+
+      //create
+      sendRequest('POST', url, workflowStartCallback, payload);
+    }
+
+    // completes the selected task with the variables from the displayed form
+    function taskWithVariables()
+    {
+      //complete task, submitting variables
+      var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.CompleteTask';
+
+      var payload = new Object();
+      var params = new Object();
+
+      //collect data from form
+      var camundaParams = new Object();
+      fFormVariables.forEach(function(property)
+      {
+          camundaParams[property.id] = document.getElementById('form_' + property.id).value;
+      });
+      params.camundaParams = camundaParams;
+
+      params.taskId = fSelectedTask;
+
+      payload.params = params;
+
+      //create
+      sendRequest('POST', url, completeTaskCallback, payload);
+    }
+
+    //// history functions
+
+    // retrieves the workflow history for the document
+    function showHistory()
+    {
+      var docId = getDocumentId();
+
+      var url = CAMUNDA_REST_URL + 'process-history';
+
+      //pagination
+      url += '?firstResult=' + fFirstResult + '&maxResults=' + fMaxResults;
+
+      //url parameters
+      url += '&sortBy=startTime&sortOrder=desc';
+      url += '&variables=iisys_documentId_eq_' + docId;
+
+      sendRequest('GET', url, historyDisplay, null);
+    }
+
+    // displays the document history in the given response in "camundaIframe"
+    function historyDisplay(response)
+    {
+      fHistory = response;
+
+      var html = '';
+
+      fHistory.forEach(function(entry)
+      {
+        //TODO: missing names handling
+
+        //TODO: additional details / ID?
+
+        html += '<div class="historyEntry">';
+        html += displayTimestamp(entry.startTime) + ' - ';
+        html += displayUser(entry.startUserId, entry.startUserName) + ' - ';
+        html += displayProcessDef(entry.processDefinitionId, entry.processDefinitionName) + ' - ';
+
+        if(entry.endTime != null)
+        {
+          html += 'end: ' + displayTimestamp(entry.endTime);
+          html += ' (' + displayTime(entry.durationInMillis) + ')';
+        }
+        else
+        {
+          html += 'running';
+        }
+
+        html += '</div>';
+      });
+
+      //pagination buttons
+      html += '<button type="button" onclick="historyBack()">back</button>';
+      html += '<button type="button" onclick="historyForward()">forward</button>';
+
+      document.getElementById('camundaIframe').innerHTML = html;
+
+      //add button to hide again
+      var html = '<button type="button" onclick="hideIframe()">hide History</button>';
+      document.getElementById('hideButtonDiv').innerHTML = html;
+    }
+
+    // renders a timestamp into the format "HH:MM:SS - DD-M-YYYY"
+    function displayTimestamp(timestamp)
+    {
+      var display = '';
+
+      if(timestamp != null)
+      {
+        var parts = timestamp.split('T');
+        var date = parts[0];
+        var dateParts = date.split('-');
+        var time = parts[1];
+
+        display = dateParts[2] + '/' + dateParts[1] + '/' + dateParts[0];
+        display += ' - ' + time;
+      }
+      else
+      {
+        display = 'n/a';
+      }
+
+      return display;
+    }
+
+    // renders a given time in milliseconds into the format "<n>y <n>d <n>h <n>m <n>s"
+    function displayTime(time)
+    {
+      var display = '';
+
+      var years = Math.floor(time / (365 * 24 * 3600000));
+      var days = Math.floor((time % (365 * 24 * 3600000)) / (24 * 3600000));
+      var hours = Math.floor((time % (24 * 3600000)) / (3600000));
+      var minutes = Math.floor((time % (3600000)) / (60000));
+      var seconds = Math.ceil((time % (60000)) / (1000));
+
+      if(years >= 1)
+      {
+        display += years + 'y ';
+      }
+      if(days >= 1)
+      {
+        display += days + 'd ';
+      }
+      if(hours >= 1)
+      {
+        display += hours + 'h ';
+      }
+      if(minutes >= 1)
+      {
+        display += minutes + 'min ';
+      }
+      if(seconds >= 1)
+      {
+        display += seconds + 's';
+      }
+
+      return display;
+    }
+
+    /*
+     *  creates an HTML display string for the given process defintion ID and available name
+     *  if a name is missing, i.e. null, it's replaced with a placeholder
+     *  a link to the definition in the Camunda cockpit is generated automatically
+     */
+    function displayProcessDef(defId, name)
+    {
+      if(name == null)
+      {
+        name = '(definition deleted)';
+      }
+
+      var display = '<a href="' + CAMUNDA_URL + 'app/cockpit/default/#/process-definition/' + defId + '/runtime" target="_blank">';
+      display += name;
+      display += '</a>';
+
+      return display;
+    }
+
+    // creates an HTML display for a user, using his/her name and creating a profile link
+    function displayUser(userId, name)
+    {
+      var display = '<a href="' + PROFILE_URL + userId + '" target="_blank">';
+      display += name;
+      display += '</a>';
+
+      return display;
+    }
+
+    // history pagination "back" function
+    function historyBack()
+    {
+      if(fFirstResult == 0)
+      {
+        return;
+      }
+
+      fFirstResult -= fMaxResults;
+
+      if(fFirstResult < 0)
+      {
+        fFirstResult = 0;
+      }
+
+      showHistory();
+    }
+
+    // history pagination "forwards" function
+    function historyForward()
+    {
+      fFirstResult += fMaxResults;
+
+      showHistory();
+    }
+
+    //// linked workflows controls
+
+    // via callback, shows the linking controls - for that retrieves document type and path
+    function showLinking()
+    {
+      //retrieve document type and path
+      var url = NUXEO_API_URL + 'id/' + getDocumentId();
+
+      sendRequest('GET', url, showLinkingCallback, null);
+    }
+
+    /*
+     *  callback that retrieves the actually linked workflows, taking document
+     *  type and path from the given response
+     */
+    function showLinkingCallback(response)
+    {
+      //get linked workflows, including the information how they were linked
+      fDocPath = response.path;
+      fDocType = response.type;
+
+      var url = CAMUNDA_REST_URL + 'nuxeo-links?latestVersion=true';
+      url += '&type=' + fDocType;
+      url += '&path=' + fDocPath;
+
+      sendRequest('GET', url, showLinkedDefs, null);
+    }
+
+    /*
+     *  callback displaying the linked workflows from the response including
+     *  how they were linked and a deletion option
+     *  also adds the "hidden" "new link" dialog and a button to show it
+     */
+    function showLinkedDefs(response)
+    {
+      fLinkedWorkflows = response;
+
+      var html = '<h3>Linked Workflow Definitions</h3>';
+
+      //show the received linked workflows
+      var index = 0;
+      response.forEach(function(entry)
+      {
+        html += '<label>' + entry.name + ':</label>';
+        html += '<label>linked by ' + entry.linkedByType + ': </label>';
+        html += '<label>' + entry.linkedByValue + '</label>';
+        html += '<input type="hidden" id="linked_wf_type_' + index + '" value="' + entry.linkedByType + '"/>';
+        html += '<input type="hidden" id="linked_wf_value_' + index + '" value="' + entry.linkedByValue + '"/>';
+        html += '<input type="hidden" id="linked_wf_id_' + index + '" value="' + entry.id + '"/>';
+
+        //delete option
+        html += '<a onclick="unlink(' + index + ')" href="javascript:void(0)">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;delete</a><br/>';
+
+        ++index;
+      });
+
+
+      //show option to add new link
+      html += '<button type="button" onclick="showNewLink()">new link</button>';
+
+      html += '<div id="new_link_div" style="display: none;">';
+      html += '<h3>create a new link</h3><br/>';
+
+      //list of all workflow definitions? don't use existing one?
+      html += 'please select a workflow to link at the top<br/>';
+
+      //type selector and value entry
+      html += 'link by: ';
+      html += '<select id="linkTypeSelector" onchange="switchNewLinkType(this.value)">';
+      html += '<option value="type">Document Type</option>';
+      html += '<option value="path">Subpath</option>';
+      html += '</select>';
+
+      html += '<input type="text" size="30" id="new_link_value" value="' + fDocType + '"/><br/>';
+
+      html += '<button type="button" onclick="link()">create new link</button>';
+
+
+
+      document.getElementById('camundaIframe').innerHTML = html;
+
+      //add button to hide again
+      var html = '<button type="button" onclick="hideIframe()">hide Linking</button>';
+      document.getElementById('hideButtonDiv').innerHTML = html;
+    }
+
+    // shows the "new link" dialog
+    function showNewLink()
+    {
+      document.getElementById('new_link_div').style.display = 'block';
+    }
+
+    // function setting the value corresponding to the selected new link type in "new_link_value"
+    function switchNewLinkType(type)
+    {
+      if(type == 'type')
+      {
+        document.getElementById('new_link_value').value = fDocType;
+      }
+      else if(type == 'path')
+      {
+        document.getElementById('new_link_value').value = fDocPath;
+      }
+    }
+
+    // creates a new link of the selected workflow definition to a document type or path
+    function link()
+    {
+      var url = CAMUNDA_REST_URL + 'nuxeo-links/link/';
+
+      //TODO: get from different selector?
+      var wfDefId = document.getElementById('workflowDefinitionSelector').value;
+
+      if(wfDefId == null || wfDefId == '')
+      {
+        alert('no workflow definition selected');
+        return;
+      }
+
+      url += wfDefId;
+
+      var type = document.getElementById('linkTypeSelector').value;
+      var value = document.getElementById('new_link_value').value;
+
+      if(value == null || value == '')
+      {
+        alert('missing link value');
+        return;
+      }
+
+      if(type == 'type')
+      {
+        url += '?type=' + value;
+      }
+      else if(type == 'path')
+      {
+        url += '?path=' + value;
+      }
+
+      sendRequest('POST', url, linkCallback, new Object());
+    }
+
+    // callback function notifying the user about the response to a linking request
+    function linkCallback(response)
+    {
+      if(response.error != null
+        && 'Error 204: No Content' != response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        alert('success! - please refresh this page');
+      }
+    }
+
+    // deletes a link between a workflow and a document type or path (identified by its list index)
+    function unlink(index)
+    {
+      if(!confirm('Are you sure you want to delete this worklfow definition link?'))
+      {
+        return;
+      }
+
+      var id = document.getElementById('linked_wf_id_' + index).value;
+      var type = document.getElementById('linked_wf_type_' + index).value;
+      var value = document.getElementById('linked_wf_value_' + index).value;
+
+      var url = CAMUNDA_REST_URL + 'nuxeo-links/unlink/' + id;
+      url += '?' + type + '=' + value;
+
+      sendRequest('DELETE', url, unlinkCallback, null);
+    }
+
+    // callback function notifying the user about the response to a unlinking request
+    function unlinkCallback(response)
+    {
+      if(response.error != null
+        && 'Error 204: No Content' != response.error)
+      {
+        alert(response.error);
+      }
+      else
+      {
+        alert('success! - please refresh this page');
+      }
+    }
+
+
+    //// currently unused functions
+
+    // not used at the moment - bypasses nuxeo integration (workflow ID setting)
+    function startCamundaWorkflow()
+    {
+      var url = CAMUNDA_REST_URL + 'process-definition/';
+
+      var definitionId = document.getElementById('workflowDefinitionSelector').value;
+
+      url += definitionId + '/start'
+
+
+      //set parameters
+      var payload = new Object();
+      var variables = new Object();
+
+      var documentIdObj = new Object();
+      documentIdObj.type = 'String';
+      documentIdObj.value = getDocumentId();
+
+      variables.documentId = documentIdObj;
+
+      payload.variables = variables;
+
+      //create
+      sendRequest('POST', url, workflowStartCallback, payload);
+    }
+
+    // not used at the moment - lacks start form support
+    function startNuxeoWorkflow()
+    {
+      var url = NUXEO_API_URL + 'id/' + getDocumentId() + '/@op/Camunda.StartWorkflow';
+
+      var payload = new Object();
+      var params = new Object();
+      params.workflowId = document.getElementById('workflowDefinitionSelector').value;
+      params.workflowInstanceId = 'unused';
+      payload.params = params;
+
+
+      //create
+      sendRequest('POST', url, workflowStartCallback, payload);
+    }
+
+  //]]>
+  </script>
+
+  <!-- div containing controls to start and display tasks and workflows -->
+  <div id="camundaControls">
+    <select id="workflowCategorySelector" onchange="getWorkflowDefinitions(this.value)">
+      <option value="*linked*">Linked Workflows</option>
+      <option value="*">All Workflows</option>
+      <option value="http://activiti.org/bpmn">Default Workflows</option>
+      <option value="bogus">Test Workflows</option>
+    </select>
+    <select id="workflowDefinitionSelector">
+    </select>
+    <button type="button" onclick="showStartForm()">show Start Form</button>
+    <button type="button" onclick="showBpmn()">show BPMN</button>
+    <br/>
+
+    <select id="workflowSelector">
+    </select>
+    <button type="button" onclick="openCamundaWorkflow()">show Workflow in Camunda</button>
+    <button type="button" onclick="deleteCamundaWorkflow()">delete Workflow</button>
+    <br/>
+
+    <select id="taskSelector">
+    </select>
+    <button type="button" onclick="openCamundaTask()">show Task in Camunda</button>
+    <button type="button" onclick="showTaskForm()">show Task Form</button>
+    <button type="button" onclick="showHighlightedBpmn()">show in BPMN</button>
+    <br/>
+
+    <button type="button" onclick="showHistory()">show History</button>
+    <button type="button" onclick="showLinking()">Linking Options</button>
+    <br/>
+
+    <div id="hideButtonDiv"></div>
+    <div id="camundaIframe"></div>
+  </div>
+
+  <!-- trigger initialization after objects have been defined -->
+  <script type="text/javascript">
+  //<![CDATA[
+    workflowsInit();
+  //]]>
+  </script>
+</div>

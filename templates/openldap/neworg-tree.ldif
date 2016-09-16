@@ -1,0 +1,12 @@
+version: 1
+
+dn: dc=INSERT_TENANT_NAME_HERE,dc=org
+objectclass: dcObject
+objectclass: organization
+o: INSERT_TENANT_NAME_HERE
+dc: INSERT_TENANT_NAME_HERE
+
+dn: ou=people, dc=INSERT_TENANT_NAME_HERE, dc=org
+ou: people
+description: All people in organisation
+objectClass: organizationalUnit

@@ -1,0 +1,29 @@
+{
+  "id": "INSERT_SERVICE_ID_HERE",
+  "cmd": "/entrypoint.sh",
+  "cpus": INSERT_CPUS_HERE,
+  "mem": INSERT_MEMORY_HERE,
+  "constraints": [["tenant", "LIKE", "INSERT_TENANT_HERE"],
+    ["tenant_vm", "LIKE", "INSERT_TENANT_VM_HERE"]],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "127.0.0.1:5000/schub/elasticsearch",
+      "forcePullImage": true,
+      "network": "BRIDGE",
+      "parameters": [
+        { "key": "hostname", "value": "INSERT_SERVER_HOSTNAME_HERE" },
+        { "key": "env", "value": "CLUSTER_NAME=INSERT_CLUSTER_NAME_HERE" },
+        { "key": "env", "value": "NODE_NAME=INSERT_NODE_NAME_HERE" },
+        { "key": "env", "value": "HEAP_SIZE=INSERT_HEAP_SIZE_HERE" }
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/home/elasticsearch/data/",
+        "hostPath": "/mnt/data/elasticsearch/",
+        "mode": "RW"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+heat_template_version: 2013-05-23
+
+description: >
+  HOT template to deploy an instance of a tentant VM
+
+resources:
+  server1:
+    type: OS::Nova::Server
+    properties:
+      name: INSERT_SERVER_NAME_HERE
+      image: INSERT_IMAGE_NAME_HERE
+      flavor: INSERT_FLAVOR_HERE
+      availability_zone: INSERT_AVAILABILITY_ZONE_HERE
+      key_name: INSERT_SSH_KEY_NAME_HERE
+      networks:
+        - port: { get_resource: server1_port }
+      user_data:
+        get_file: INSERT_INIT_SCRIPT_FILE_HERE
+
+  server1_port:
+    type: OS::Neutron::Port
+    properties:
+      network_id: INSERT_NETWORK_ID_HERE
+      fixed_ips:
+        - subnet_id: INSERT_NETWORK_SUBNET_HERE
+      security_groups: [ INSERT_SECURITY_GROUP_HERE ]
+
+outputs:
+  server1_private_ip:
+    description: IP address of server1 in private network
+    value: { get_attr: [ server1, first_address ] }

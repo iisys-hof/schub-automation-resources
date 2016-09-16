@@ -1,0 +1,10 @@
+passdb {
+  driver = ldap
+  args = INSERT_FILE_NAME_HERE
+}
+
+userdb {
+  driver = ldap
+  args = INSERT_FILE_NAME_HERE
+}
+

@@ -1,0 +1,30 @@
+<component name="org.nuxeo.ecm.platform.authenticator.cas2.sso.config">
+
+  <require>org.nuxeo.ecm.platform.ui.web.auth.WebEngineConfig</require>
+  <require>org.nuxeo.ecm.platform.login.Cas2SSO</require>
+
+  <!-- Configure you CAS server parameters -->
+  <extension target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService" point="authenticators">
+    <authenticationPlugin name="CAS2_AUTH">
+      <loginModulePlugin>Trusting_LM</loginModulePlugin>
+      <parameters>
+        <parameter name="ticketKey">ticket</parameter>
+        <parameter name="appURL">INSERT_CAS_APP_URL_HERE</parameter>
+        <parameter name="serviceLoginURL">INSERT_CAS_SVC_LOGIN_URL_HERE</parameter>
+        <parameter name="serviceValidateURL">INSERT_CAS_SVC_VALIDATE_URL_HERE</parameter>
+        <parameter name="serviceKey">service</parameter>
+        <parameter name="logoutURL">INSERT_CAS_LOGOUT_URL_HERE</parameter>
+      </parameters>
+    </authenticationPlugin>
+  </extension>
+
+  <!-- Include CAS2 into authentication chain -->
+  <extension target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService" point="chain">
+    <authenticationChain>
+      <plugins>
+        <plugin>BASIC_AUTH</plugin>
+        <plugin>CAS2_AUTH</plugin>
+      </plugins>
+    </authenticationChain>
+  </extension>
+</component>

@@ -1,0 +1,1 @@
+sudo WEAVE_NO_FASTDP=true weave launch --password INSERT_WEAVE_PASSWORD_HERE --ipalloc-range INSERT_WEAVE_NETWORK_HERE --dns-domain="schub.local." INSERT_WEAVE_PEERS_HERE

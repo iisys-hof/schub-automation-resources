@@ -1,0 +1,6 @@
+deb mirror://mirrors.ubuntu.com/mirrors.txt trusty main universe
+deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-updates universe
+deb mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main universe
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt trusty main universe
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt trusty-updates main universe
+deb-src mirror://mirrors.ubuntu.com/mirrors.txt trusty-security main universe

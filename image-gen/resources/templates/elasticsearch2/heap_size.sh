@@ -1,0 +1,2 @@
+#!/bin/bash
+export ES_HEAP_SIZE=INSERT_HEAP_SIZE_HERE

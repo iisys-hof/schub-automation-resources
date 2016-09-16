@@ -1,0 +1,140 @@
+# TODO: deactivate unencrypted server or just redirect?
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server ipv6only=on;
+
+  server_name INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE;
+
+  client_max_body_size INSERT_MAX_REQUEST_SIZE_HERE;
+
+  # TODO: deactivate for service proxy - root proxy will need to do this
+  proxy_set_header X-Real-IP  $remote_addr;
+  proxy_set_header X-Forwarded-For $remote_addr;
+  proxy_set_header Host $host;
+
+  # weave dns
+  resolver INSERT_WEAVE_DNS_HERE;
+
+  location / {
+    set $liferay "https://liferay.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $liferay/;
+  }
+
+  location /cas/ {
+    set $cas "https://cas.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $cas;
+  }
+
+  location /shindig/ {
+    set $shindig "https://shindig.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $shindig;
+  }
+
+  location /elasticsearch/ {
+    set $elasticsearch "http://elasticsearch.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:9200/";
+    rewrite    /elasticsearch(.*) /$1 break;
+    proxy_pass $elasticsearch;
+  }
+
+  location /elasticsearch2/ {
+    set $elasticsearch2 "http://elasticsearch2.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:9200/";
+    rewrite    /elasticsearch2(.*) /$1 break;
+    proxy_pass $elasticsearch2;
+  }
+
+  location /nuxeo/ {
+    set $nuxeo "https://nuxeo.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $nuxeo;
+  }
+
+  location /camunda/ {
+    set $camunda "https://camunda.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $camunda;
+  }
+
+  location /engine-rest/ {
+    set $enginerest "https://camunda.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $enginerest;
+  }
+
+  location /appsuite/ {
+    set $openxchange "https://open-xchange.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE";
+    proxy_pass $openxchange;
+  }
+}
+
+
+# HTTPS server
+
+server {
+  listen 443;
+  server_name INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE;
+
+  client_max_body_size INSERT_MAX_REQUEST_SIZE_HERE;
+
+  ssl on;
+  ssl_certificate /ssl/INSERT_TENANT_NAME_HERE.crt;
+  ssl_certificate_key /ssl/INSERT_TENANT_NAME_HERE.key;
+
+  ssl_session_timeout 5m;
+
+  ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+  ssl_prefer_server_ciphers on;
+
+  # TODO: deactivate for service proxy - root proxy will need to do this
+  proxy_set_header X-Real-IP  $remote_addr;
+  proxy_set_header X-Forwarded-For $remote_addr;
+  proxy_set_header Host $host;
+
+  # weave dns
+  resolver INSERT_WEAVE_DNS_HERE;
+
+  location / {
+    set $liferay "https://liferay.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $liferay;
+  }
+
+  location /cas/ {
+    set $cas "https://cas.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+                proxy_pass $cas;
+  }
+    
+  location /shindig/ {
+    set $shindig "https://shindig.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $shindig;
+  }
+
+  location /elasticsearch/ {
+    set $elasticsearch "http://elasticsearch.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:9200";
+    rewrite    /elasticsearch(.*) /$1 break;
+    proxy_pass $elasticsearch;
+  }
+
+  location /elasticsearch2/ {
+    set $elasticsearch2 "http://elasticsearch2.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:9200";
+    rewrite    /elasticsearch2(.*) /$1 break;
+    proxy_pass $elasticsearch2;
+  }
+
+  location /nuxeo/ {
+    set $nuxeo "https://nuxeo.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $nuxeo;
+  }
+
+  location /camunda/ {
+    set $camunda "https://camunda.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $camunda;
+  }
+
+  location /engine-rest/ {
+    set $enginerest "https://camunda.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE:8443";
+    proxy_pass $enginerest;
+  }
+
+  location /appsuite/ {
+    set $openxchange "https://open-xchange.INSERT_TENANT_NAME_HERE.INSERT_LOCAL_DOMAIN_HERE";
+    proxy_pass $openxchange;
+  }
+}
+

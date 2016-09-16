@@ -1,0 +1,9 @@
+dn: olcDatabase=hdb,cn=config
+objectClass: olcDatabaseConfig
+objectClass: olcHdbConfig
+olcDatabase: hdb
+olcDbDirectory: /var/lib/ldap/INSERT_TENANT_NAME_HERE/
+olcSuffix: dc=INSERT_TENANT_NAME_HERE,dc=org
+olcRootDN: cn=admin,dc=INSERT_TENANT_NAME_HERE,dc=org
+olcRootPW: INSERT_SUB_ADMIN_PASS_HERE
+olcDbIndex: objectClass eq

@@ -1,0 +1,28 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+string_mask = utf8only
+
+[req_distinguished_name]
+countryName = Country Name (2 letter code)
+countryName_default = DE
+stateOrProvinceName = State or Province Name (full name)
+stateOrProvinceName_default = Bayern
+localityName = Locality Name (eg, city)
+localityName_default = Hof
+organizationName = Organization Name
+organizationName_default = Social Collaboration Hub
+organizationalUnitName    = Organizational Unit Name (eg, section)
+organizationalUnitName_default    = Systemintegration
+commonName = Common Name (IP, FQDN, Name)
+commonName_max    = 64
+
+[ v3_req ]
+# Extensions to add to a certificate request
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = INSERT_SERVICE_DNS_HERE
+DNS.2 = INSERT_TENANT_DNS_HERE

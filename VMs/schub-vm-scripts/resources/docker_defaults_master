@@ -1,0 +1,2 @@
+# Docker Upstart and SysVinit configuration file
+DOCKER_OPTS=" --mtu=1434 --insecure-registry INSERT_DOCKER_REGISTRY_HERE --storage-driver=overlay"

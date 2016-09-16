@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+  <display-name>camunda bpm webapp</display-name>
+
+  <!-- cockpit bootstrap listener -->
+  <listener>
+    <listener-class>org.camunda.bpm.cockpit.impl.web.bootstrap.CockpitContainerBootstrap</listener-class>
+  </listener>
+
+  <!-- admin bootstrap listener -->
+  <listener>
+    <listener-class>org.camunda.bpm.admin.impl.web.bootstrap.AdminContainerBootstrap</listener-class>
+  </listener>
+
+  <!-- tasklist bootstrap listener -->
+  <listener>
+    <listener-class>org.camunda.bpm.tasklist.impl.web.bootstrap.TasklistContainerBootstrap</listener-class>
+  </listener>
+
+  <!-- Authentication filter -->
+  <!--filter>
+    <filter-name>Authentication Filter</filter-name>
+    <filter-class>org.camunda.bpm.webapp.impl.security.auth.AuthenticationFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>Authentication Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+  </filter-mapping-->
+
+
+  <!-- CAS authentication filters -->
+
+  <listener>
+    <listener-class>
+      org.jasig.cas.client.session.SingleSignOutHttpSessionListener
+    </listener-class>
+  </listener>
+
+  <filter>
+    <filter-name>CAS Single Sign Out Filter</filter-name>
+    <filter-class>
+      org.jasig.cas.client.session.SingleSignOutFilter
+    </filter-class>
+    <init-param>
+      <param-name>casServerUrlPrefix</param-name>
+      <param-value>INSERT_CAS_SERVER_URL_HERE</param-value>
+    </init-param>
+  </filter>
+
+  <filter>
+    <filter-name>CASAuthenticationFilter</filter-name>
+    <filter-class>org.jasig.cas.client.authentication.AuthenticationFilter</filter-class>
+    <init-param>
+      <param-name>casServerLoginUrl</param-name>
+      <param-value>INSERT_CAS_LOGIN_URL_HERE</param-value>
+    </init-param>
+    <init-param>
+        <param-name>serverName</param-name>
+        <param-value>INSERT_SERVER_NAME_HERE</param-value>
+    </init-param>
+  </filter>
+
+  <filter>
+    <filter-name>CAS Validation Filter</filter-name>
+    <filter-class>org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter</filter-class>
+    <init-param>
+      <param-name>casServerUrlPrefix</param-name>
+      <param-value>INSERT_CAS_SERVER_URL_HERE</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serverName</param-name>
+      <param-value>INSERT_SERVER_NAME_HERE</param-value>
+    </init-param>
+    <init-param>
+      <param-name>redirectAfterValidation</param-name>
+      <param-value>true</param-value>
+    </init-param>
+  </filter>
+
+  <filter>
+      <filter-name>CAS HttpServletRequest Wrapper Filter</filter-name>
+      <filter-class>org.jasig.cas.client.util.HttpServletRequestWrapperFilter</filter-class>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>CAS Single Sign Out Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CASAuthenticationFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CAS Validation Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <filter-mapping>
+    <filter-name>CAS HttpServletRequest Wrapper Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+  <!-- Camunda CAS SSO Filter -->
+
+  <filter>
+      <filter-name>Camunda CAS SSO Filter</filter-name>
+      <filter-class>de.hofuniversity.iisys.camunda.sso.CASSSOFilter</filter-class>
+  </filter>
+
+  <filter-mapping>
+    <filter-name>Camunda CAS SSO Filter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+  </filter-mapping>
+
+
+  <!-- Security filter -->
+  <filter>
+    <filter-name>SecurityFilter</filter-name>
+    <filter-class>org.camunda.bpm.webapp.impl.security.filter.SecurityFilter</filter-class>
+    <init-param>
+      <param-name>configFile</param-name>
+      <param-value>/WEB-INF/securityFilterRules.json</param-value>  
+    </init-param>
+  </filter>
+  <filter-mapping>
+    <filter-name>SecurityFilter</filter-name>
+    <url-pattern>/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+  </filter-mapping>
+
+  <!-- REST cache control filter -->
+  <filter>
+    <filter-name>CacheControlFilter</filter-name>
+    <filter-class>org.camunda.bpm.engine.rest.filter.CacheControlFilter</filter-class>    
+  </filter>
+  <filter-mapping>
+    <filter-name>CacheControlFilter</filter-name>
+    <url-pattern>/api/*</url-pattern>
+  </filter-mapping>
+
+  <!-- engines filter -->
+  <filter>
+    <filter-name>Engines Filter</filter-name>
+    <filter-class>org.camunda.bpm.webapp.impl.engine.ProcessEnginesFilter</filter-class>
+  </filter>
+  <filter-mapping>
+    <filter-name>Engines Filter</filter-name>
+    <url-pattern>/app/*</url-pattern>
+    <dispatcher>REQUEST</dispatcher>
+  </filter-mapping>
+
+  <!-- cockpit rest api -->
+  <servlet>
+    <servlet-name>Cockpit Api</servlet-name>
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+      <param-name>javax.ws.rs.Application</param-name>
+      <param-value>org.camunda.bpm.cockpit.impl.web.CockpitApplication</param-value>
+    </init-param>
+    <init-param>
+      <param-name>resteasy.servlet.mapping.prefix</param-name>
+      <param-value>/api/cockpit</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Cockpit Api</servlet-name>
+    <url-pattern>/api/cockpit/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- admin rest api -->
+  <servlet>
+    <servlet-name>Admin Api</servlet-name>
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+      <param-name>javax.ws.rs.Application</param-name>
+      <param-value>org.camunda.bpm.admin.impl.web.AdminApplication</param-value>
+    </init-param>
+    <init-param>
+      <param-name>resteasy.servlet.mapping.prefix</param-name>
+      <param-value>/api/admin</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Admin Api</servlet-name>
+    <url-pattern>/api/admin/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- tasklist rest api -->
+  <servlet>
+    <servlet-name>Tasklist Api</servlet-name>
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+      <param-name>javax.ws.rs.Application</param-name>
+      <param-value>org.camunda.bpm.tasklist.impl.web.TasklistApplication</param-value>
+    </init-param>
+    <init-param>
+      <param-name>resteasy.servlet.mapping.prefix</param-name>
+      <param-value>/api/tasklist</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Tasklist Api</servlet-name>
+    <url-pattern>/api/tasklist/*</url-pattern>
+  </servlet-mapping>
+
+  <!-- engine rest api (embedded) -->
+  <servlet>
+    <servlet-name>Engine Api</servlet-name>
+    <servlet-class>org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher</servlet-class>
+    <init-param>
+      <param-name>javax.ws.rs.Application</param-name>
+      <param-value>org.camunda.bpm.webapp.impl.engine.EngineRestApplication</param-value>
+    </init-param>
+    <init-param>
+      <param-name>resteasy.servlet.mapping.prefix</param-name>
+      <param-value>/api/engine</param-value>
+    </init-param>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>Engine Api</servlet-name>
+    <url-pattern>/api/engine/*</url-pattern>
+  </servlet-mapping>
+</web-app>

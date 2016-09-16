@@ -1,0 +1,9 @@
+server_host = INSERT_LDAP_SERVER_HERE
+search_base = ou=people,dc=INSERT_TENANT_NAME_HERE,dc=org
+bind_dn = INSERT_LDAP_ADMIN_HERE
+bind_pw = INSERT_LDAP_ADMIN_PASSWORD_HERE
+bind = yes
+
+query_filter = (&(objectclass=inetOrgPerson)(|(mail=%s)(aliasMail=%s)(aliasMailAlternateAddress=%s)))
+result_attribute = mail
+domain = INSERT_MAIL_DOMAIN_HERE

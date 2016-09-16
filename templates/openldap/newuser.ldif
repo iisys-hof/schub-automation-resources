@@ -1,0 +1,16 @@
+dn: uid=test,ou=people,dc=test,dc=org
+uid: test
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: posixAccount
+objectClass: person
+objectClass: top
+cn: Test User
+displayName: Test User
+givenName: Test
+sn: User
+userPassword: secret
+mail: test.user@sc-hub.de
+gidNumber: 4242
+uidNumber: 293480
+homeDirectory: /home/test/

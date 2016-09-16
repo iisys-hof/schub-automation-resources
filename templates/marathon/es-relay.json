@@ -1,0 +1,49 @@
+{
+  "id": "INSERT_SERVICE_ID_HERE",
+  "cmd": "/entrypoint.sh",
+  "cpus": INSERT_CPUS_HERE,
+  "mem": INSERT_MEMORY_HERE,
+  "constraints": [["tenant", "LIKE", "INSERT_TENANT_HERE"],
+    ["tenant_vm", "LIKE", "INSERT_TENANT_VM_HERE"]],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "127.0.0.1:5000/schub/es-relay",
+      "forcePullImage": true,
+      "network": "BRIDGE",
+      "parameters": [
+        { "key": "hostname", "value": "INSERT_SERVER_HOSTNAME_HERE" },
+        { "key": "env", "value": "ES_URL=INSERT_ES_URL_HERE" },
+        { "key": "env", "value": "ES_HOST=INSERT_ES_HOST_HERE" },
+        { "key": "env", "value": "ES_PORT=INSERT_ES_PORT_HERE" },
+        { "key": "env", "value": "ES_CLUSTER_NAME=INSERT_ES_CLUSTER_NAME_HERE" },
+        { "key": "env", "value": "ES2_URL=INSERT_ES2_URL_HERE" },
+        { "key": "env", "value": "ES2_HOST=INSERT_ES2_HOST_HERE" },
+        { "key": "env", "value": "ES2_PORT=INSERT_ES2_PORT_HERE" },
+        { "key": "env", "value": "ES2_CLUSTER_NAME=INSERT_ES2_CLUSTER_NAME_HERE" },
+        { "key": "env", "value": "LIFERAY_INDEX=INSERT_LIFERAY_INDEX_HERE" },
+        { "key": "env", "value": "LIFERAY_URL=INSERT_LIFERAY_URL_HERE" },
+        { "key": "env", "value": "LIFERAY_COMPANY_ID=INSERT_LIFERAY_COMPANY_ID_HERE" },
+        { "key": "env", "value": "LIFERAY_USER=INSERT_LIFERAY_USER_HERE" },
+        { "key": "env", "value": "LIFERAY_PASSWORD=INSERT_LIFERAY_PASSWORD_HERE" },
+        { "key": "env", "value": "LIFERAY_PASS_ROLES=INSERT_LIFERAY_PASS_ROLES_HERE" },
+        { "key": "env", "value": "NUXEO_URL=INSERT_NUXEO_URL_HERE" },
+        { "key": "env", "value": "NUXEO_USER=INSERT_NUXEO_USER_HERE" },
+        { "key": "env", "value": "NUXEO_PASSWORD=INSERT_NUXEO_PASSWORD_HERE" },
+        { "key": "env", "value": "SHINDIG_URL=INSERT_SHINDIG_URL_HERE" },
+        { "key": "env", "value": "CAS_LOGIN_URL=INSERT_CAS_LOGIN_URL_HERE" },
+        { "key": "env", "value": "CAS_SERVER_URL=INSERT_CAS_SERVER_URL_HERE" },
+        { "key": "env", "value": "SERVER_NAME=INSERT_SERVER_NAME_HERE" },
+        { "key": "env", "value": "JAVA_MEM_MIN=INSERT_JAVA_MEM_MIN_HERE" },
+        { "key": "env", "value": "JAVA_MEM_MAX=INSERT_JAVA_MEM_MAX_HERE" }
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/ssl",
+        "hostPath": "INSERT_CERTIFICATES_PATH_HERE",
+        "mode": "RO"
+      }
+    ]
+  }
+}

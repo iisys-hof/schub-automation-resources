@@ -1,0 +1,9 @@
+dn: olcDatabase=INSERT_TENANT_CONFIG_DB_HERE,cn=config
+changetype: modify
+replace: olcAccess
+olcAccess: {0}to attrs=userPassword by dn="INSERT_LDAP_ADMIN_USER_HERE" write by dn="cn=admin,dc=INSERT_TENANT_NAME_HERE,dc=org" write by self write by anonymous auth by users none
+olcAccess: {1}to dn.subtree="dc=INSERT_TENANT_NAME_HERE,dc=org" by self read by dn="INSERT_LDAP_ADMIN_USER_HERE" write
+olcAccess: {2}to dn.base="" by dn="INSERT_LDAP_ADMIN_USER_HERE" read
+olcAccess: {3}to * by dn="INSERT_LDAP_ADMIN_USER_HERE" write by dn="INSERT_LDAP_ADMIN_USER_HERE" read
+olcAccess: {4}to dn.base="" by dn="cn=admin,dc=INSERT_TENANT_NAME_HERE,dc=org" read
+olcAccess: {5}to * by dn="cn=admin,dc=INSERT_TENANT_NAME_HERE,dc=org" write by dn="cn=admin,dc=INSERT_TENANT_NAME_HERE,dc=org" read

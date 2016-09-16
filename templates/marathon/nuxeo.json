@@ -1,0 +1,57 @@
+{
+  "id": "INSERT_SERVICE_ID_HERE",
+  "cmd": "/entrypoint.sh",
+  "cpus": INSERT_CPUS_HERE,
+  "mem": INSERT_MEMORY_HERE,
+  "constraints": [["tenant", "LIKE", "INSERT_TENANT_HERE"],
+    ["tenant_vm", "LIKE", "INSERT_TENANT_VM_HERE"]],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "127.0.0.1:5000/schub/nuxeo",
+      "forcePullImage": true,
+      "network": "BRIDGE",
+      "parameters": [
+        { "key": "hostname", "value": "INSERT_SERVER_HOSTNAME_HERE" },
+        { "key": "env", "value": "NUXEO_URL=INSERT_NUXEO_URL_HERE" },
+        { "key": "env", "value": "DB_NAME=INSERT_DB_NAME_HERE" },
+        { "key": "env", "value": "DB_USER=INSERT_DB_USER_HERE" },
+        { "key": "env", "value": "DB_PASSWORD=INSERT_DB_PASSWORD_HERE" },
+        { "key": "env", "value": "DB_HOST=INSERT_DB_HOST_HERE" },
+        { "key": "env", "value": "DB_PORT=INSERT_DB_PORT_HERE" },
+        { "key": "env", "value": "ES_SERVER=INSERT_ES_SERVER_HERE" },
+        { "key": "env", "value": "ES_CLUSTER_NAME=INSERT_ES_CLUSTER_NAME_HERE" },
+        { "key": "env", "value": "SHINDIG_URL=INSERT_SHINDIG_URL_HERE" },
+        { "key": "env", "value": "LDAP_USER=INSERT_LDAP_USER_HERE" },
+        { "key": "env", "value": "LDAP_PASSWORD=INSERT_LDAP_PASSWORD_HERE" },
+        { "key": "env", "value": "LDAP_SERVER=INSERT_LDAP_SERVER_HERE" },
+        { "key": "env", "value": "LDAP_USER_BASE=INSERT_LDAP_USER_BASE_HERE" },
+        { "key": "env", "value": "CAS_APP_URL=INSERT_CAS_APP_URL_HERE" },
+        { "key": "env", "value": "CAS_SVC_LOGIN_URL=INSERT_CAS_SVC_LOGIN_URL_HERE" },
+        { "key": "env", "value": "CAS_SVC_VALIDATE_URL=INSERT_CAS_SVC_VALIDATE_URL_HERE" },
+        { "key": "env", "value": "CAS_LOGOUT_URL=INSERT_CAS_LOGOUT_URL_HERE" },
+        { "key": "env", "value": "SHINDIG_URL=INSERT_SHINDIG_URL_HERE" },
+        { "key": "env", "value": "ACTIVITY_LANG=INSERT_ACTIVITY_LANG_HERE" },
+        { "key": "env", "value": "CAMUNDA_URL=INSERT_CAMUNDA_URL_HERE" },
+        { "key": "env", "value": "CAMUNDA_REST_URL=INSERT_CAMUNDA_REST_URL_HERE" },
+        { "key": "env", "value": "BPMN_JS_UTILS_URL=INSERT_BPMN_JS_UTILS_URL_HERE" },
+        { "key": "env", "value": "PROCESS_BASE_URL=INSERT_PROCESS_BASE_URL_HERE" },
+        { "key": "env", "value": "PROFILE_URL=INSERT_PROFILE_URL_HERE" },
+        { "key": "env", "value": "JAVA_MEM_MIN=INSERT_JAVA_MEM_MIN_HERE" },
+        { "key": "env", "value": "JAVA_MEM_MAX=INSERT_JAVA_MEM_MAX_HERE" }
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/var/lib/nuxeo/data",
+        "hostPath": "/mnt/data/nuxeo",
+        "mode": "RW"
+      },
+      {
+        "containerPath": "/ssl",
+        "hostPath": "INSERT_CERTIFICATES_PATH_HERE",
+        "mode": "RO"
+      }
+    ]
+  }
+}

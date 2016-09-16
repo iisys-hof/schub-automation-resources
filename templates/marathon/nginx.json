@@ -1,0 +1,31 @@
+{
+  "id": "INSERT_SERVICE_ID_HERE",
+  "cmd": "/entrypoint.sh",
+  "cpus": INSERT_CPUS_HERE,
+  "mem": INSERT_MEMORY_HERE,
+  "constraints": [["tenant", "LIKE", "INSERT_TENANT_HERE"],
+    ["tenant_vm", "LIKE", "INSERT_TENANT_VM_HERE"]],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "127.0.0.1:5000/schub/nginx",
+      "forcePullImage": true,
+      "network": "BRIDGE",
+      "parameters": [
+        { "key": "hostname", "value": "INSERT_SERVER_HOSTNAME_HERE" },
+        { "key": "publish", "value": "443:443" },
+        { "key": "env", "value": "TENANT_NAME=INSERT_TENANT_NAME_HERE" },
+        { "key": "env", "value": "LOCAL_DOMAIN=INSERT_LOCAL_DOMAIN_HERE" },
+        { "key": "env", "value": "WEAVE_DNS=INSERT_WEAVE_DNS_HERE" },
+        { "key": "env", "value": "MAX_REQUEST_SIZE=INSERT_MAX_REQUEST_SIZE_HERE" }
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/ssl",
+        "hostPath": "INSERT_CERTIFICATES_PATH_HERE",
+        "mode": "RO"
+      }
+    ]
+  }
+}

@@ -1,0 +1,37 @@
+# Space separated list of LDAP hosts to use. host:port is allowed too.
+hosts = INSERT_LDAP_SERVER_HERE
+
+# Distinguished Name - the username used to login to the LDAP server.
+# Leave it commented out to bind anonymously (useful with auth_bind=yes).
+dn = INSERT_LDAP_ADMIN_HERE
+
+# Password for LDAP server, if dn is specified.
+dnpass = INSERT_LDAP_ADMIN_PASSWORD_HERE
+
+# Don't authentication binding for verifying password's validity.
+auth_bind = no
+
+# LDAP protocol version to use.
+ldap_version = 3
+
+# LDAP base. %variables can be used here.
+base = ou=people,dc=INSERT_TENANT_NAME_HERE,dc=org
+
+# Search scope: base, onelevel, subtree
+scope = subtree
+
+# User attributes are given in LDAP-name=dovecot-internal-name list.
+# override uid and gid with local "mail" user and group
+user_attrs = homeDirectory=home,8=uid,8=gid
+
+# Filter for user lookup.
+# lookup by mail address
+user_filter = (&(objectClass=posixAccount)(mail=%n@%d))
+
+# Password checking attributes:
+# check by mail-password combination
+pass_attrs = mail=user,userPassword=password
+
+# Filter for password lookups
+# lookup by mail address
+pass_filter = (&(objectClass=posixAccount)(mail=%n@%d))

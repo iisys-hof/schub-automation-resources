@@ -1,0 +1,18 @@
+{
+  "bootstrap": false,
+  "bootstrap_expect": 1, // expected number of master servers
+  "server": true,
+  "datacenter": "test",
+  "data_dir": "/var/lib/consul/data/",
+  "log_level": "INFO",
+  "enable_syslog": true,
+  "advertise_addr": "10.8.0.2", // own external address
+  "addresses": {
+    "http": "0.0.0.0" // addresses to listen on
+  },
+  "retry_max": 0,
+  "retry_interval": "10s",
+  "retry_join": [
+    "10.8.0.2" // list of master servers to connect to
+  ]
+}

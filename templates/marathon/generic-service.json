@@ -1,0 +1,53 @@
+{
+  "id": "INSERT_SERVICE_ID_HERE",
+  "cmd": "python3 -m http.server 8080",
+  "cpus": 0.5,
+  "mem": 64.0,
+  "constraints": [["tenant", "LIKE", "broton"],
+    ["tenant_vm", "LIKE", "1"]],
+  "container": {
+    "type": "DOCKER",
+    "docker": {
+      "image": "server:port/group/image",
+      "forcePullImage": true,
+      "network": "BRIDGE",
+      "parameters": [
+        { "key": "hostname", "value": "INSERT_SERVER_HOSTNAME_HERE" },
+        { "key": "env", "value": "MYSQL_USER=user" },
+        { "key": "env", "value": "MYSQL_PASSWORD=pwd" },
+        { "key": "env", "value": "MYSQL_ROOT_PASSWORD=secret }"}
+      ]
+    },
+    "volumes": [
+      {
+        "containerPath": "/etc/a",
+        "hostPath": "/var/data/a",
+        "mode": "RO"
+      },
+      {
+        "containerPath": "/etc/b",
+        "hostPath": "/var/data/b",
+        "mode": "RW"
+      }
+    ]
+  },
+  "args": [
+      "--name", "etcd0",
+      "--initial-cluster-state", "new"
+  ],
+  # funktioniert das? hier?
+  "env": {
+    "key": "val"
+  },
+  # wo anwendbar nutzen?
+  "healthChecks": [
+    {
+      "protocol": "HTTP",
+      "portIndex": 0,
+      "path": "/",
+      "gracePeriodSeconds": 5,
+      "intervalSeconds": 20,
+      "maxConsecutiveFailures": 3
+    }
+  ]
+}
