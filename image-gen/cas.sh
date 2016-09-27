@@ -6,9 +6,9 @@ source ./config.sh
 
 ## basic configuration
 # TODO: share tomcat image with Shindig?
-TOMCAT_VERSION=7.0.68
+TOMCAT_VERSION=7.0.72
 
-TOMCAT_DISTRIBUTION_SRC=http://apache.openmirror.de/tomcat/tomcat-7/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz
+TOMCAT_DISTRIBUTION_SRC=http://apache.mirror.digionline.de/tomcat/tomcat-7/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz
 
 TOMCAT_DISTRIBUTION_FILE=$BINARY_REPO_DIRECTORY/tomcat7.tar.gz
 

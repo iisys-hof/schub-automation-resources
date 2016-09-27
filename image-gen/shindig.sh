@@ -6,9 +6,9 @@ source ./config.sh
 
 ## basic configuration
 # TODO: share tomcat image with CAS?
-TOMCAT_VERSION=7.0.68
+TOMCAT_VERSION=7.0.72
 
-TOMCAT_DISTRIBUTION_SRC=http://apache.openmirror.de/tomcat/tomcat-7/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz
+TOMCAT_DISTRIBUTION_SRC=http://apache.mirror.digionline.de/tomcat/tomcat-7/v$TOMCAT_VERSION/bin/apache-tomcat-$TOMCAT_VERSION.tar.gz
 
 TOMCAT_DISTRIBUTION_FILE=$BINARY_REPO_DIRECTORY/tomcat7.tar.gz
 
@@ -17,7 +17,7 @@ SHINDIG_DISTRIBUTION_SRC=http://central.maven.org/maven2/org/apache/shindig/shin
 SHINDIG_DISTRIBUTION_FILE=$BINARY_REPO_DIRECTORY/shindig.war
 
 # websocket backend
-WS_BACKEND_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/shindig-websocket-client/2.5.2-9/shindig-websocket-client-2.5.2-9.jar
+WS_BACKEND_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/shindig-websocket-client/2.5.2-11/shindig-websocket-client-2.5.2-11.jar
 
 WS_BACKEND_DIST_FILE=$BINARY_REPO_DIRECTORY/shindig-websocket-client.jar
 
@@ -26,7 +26,7 @@ WS_BACKEND_LIBS_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/shindig-websocket-client-2.
 WS_BACKEND_LIBS_DIST_FILE=$BINARY_REPO_DIRECTORY/shindig-websocket-client-lib.tar.gz
 
 # elasticsearch plugin
-ES_PLUGIN_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/shindig-es-plugin/2.5.2-4/shindig-es-plugin-2.5.2-4.jar
+ES_PLUGIN_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/shindig-es-plugin/2.5.2-9/shindig-es-plugin-2.5.2-9.jar
 
 ES_PLUGIN_DIST_FILE=$BINARY_REPO_DIRECTORY/shindig-es-plugin.jar
 

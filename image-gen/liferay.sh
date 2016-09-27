@@ -6,27 +6,41 @@ source ./config.sh
 
 ## basic configuration
 
-LIFERAY_VERSION=7.0-ga2
+LIFERAY_VERSION=7.0-ga3
 
 # TODO: automatically set in autostart-script?
 TOMCAT_VERSION=8.0.32
 
-LIFERAY_DISTRIBUTION_SRC=http://downloads.sourceforge.net/project/lportal/Liferay%20Portal/7.0.1%20GA2/liferay-ce-portal-tomcat-7.0-ga2-20160610113014153.zip
+LIFERAY_DISTRIBUTION_SRC=http://downloads.sourceforge.net/project/lportal/Liferay%20Portal/7.0.2%20GA3/liferay-ce-portal-tomcat-7.0-ga3-20160804222206210.zip
 
 LIFERAY_DISTRIBUTION_FILE=$BINARY_REPO_DIRECTORY/liferay.zip
 
-ACTIVITYSTREAMS_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/activitystreams/7.0.0-ga1/activitystreams-7.0.0-b8.jar
+ACTIVITYSTREAMS_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/activitystreams.mod/7.0.1/activitystreams.mod-7.0.1.jar
 
 ACTIVITYSTREAMS_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-activitystreams.jar
 
-# not compatible anymore
-#CAS_SSO_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/CASClearPass/7.0.0-b8/CASClearPass-7.0.0-ga1.war
+JSON_LIBRARY_SRC=http://central.maven.org/maven2/org/json/json/20160212/json-20160212.jar
 
-#CAS_SSO_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-cas-sso.war
+CAS_SSO_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/casclearpassws/7.0.2-ga2/casclearpassws-7.0.2-ga2.jar
 
-SHINDIG_PORTLETS_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/shindig/7.0.0-b8/shindig-7.0.0-b8.war
+CAS_SSO_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-cas-sso.jar
+
+SHINDIG_PORTLETS_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/shindig/7.0.1/shindig-7.0.1.war
 
 SHINDIG_PORTLETS_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-shindig-portlets.war
+
+ASSET_EXPORT_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/AssetExportTool/7.0.1-ga2/AssetExportTool-7.0.1-ga2.war
+
+ASSET_EXPORT_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-AssetExportTool.war
+
+SOCIAL_MESSENGER_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/liferay/SocialMessenger/7.0.1-ga2/SocialMessenger-7.0.1-ga2.war
+
+SOCIAL_MESSENGER_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-SocialMessenger.war
+
+# TODO: artifact needed
+#SEARCH_MASK_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/...
+
+#SEARCH_MASK_DIST_FILE=$BINARY_REPO_DIRECTORY/liferay-search-mask.jar
 
 LIFERAY_CONTAINER_NAME=liferay-build
 
@@ -62,12 +76,12 @@ else
 fi
 
 # download CAS ClearPass SSO plugin
-#if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $CAS_SSO_DIST_FILE ]]; then
-#  echo "using existing CAS ClearPass SSO plugin distribution file $CAS_SSO_DIST_FILE"
-#else
-#  echo "downloading CAS ClearPass SSO plugin distribution file"
-#  curl -o $CAS_SSO_DIST_FILE -L $CAS_SSO_DIST_SRC
-#fi
+if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $CAS_SSO_DIST_FILE ]]; then
+  echo "using existing CAS ClearPass SSO plugin distribution file $CAS_SSO_DIST_FILE"
+else
+  echo "downloading CAS ClearPass SSO plugin distribution file"
+  curl -o $CAS_SSO_DIST_FILE -L $CAS_SSO_DIST_SRC
+fi
 
 # download Shindig Porltets
 if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $SHINDIG_PORTLETS_DIST_FILE ]]; then
@@ -76,6 +90,24 @@ else
   echo "downloading Shindig Portlets distribution file"
   curl -o $SHINDIG_PORTLETS_DIST_FILE -L $SHINDIG_PORTLETS_DIST_SRC
 fi
+
+# download Asset Export Tool
+if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $ASSET_EXPORT_DIST_FILE ]]; then
+  echo "using existing Asset Export Tool distribution file $ASSET_EXPORT_DIST_FILE"
+else
+  echo "downloading Asset Export Tool distribution file"
+  curl -o $ASSET_EXPORT_DIST_FILE -L $ASSET_EXPORT_DIST_SRC
+fi
+
+# download Social Messenger
+if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $SOCIAL_MESSENGER_DIST_FILE ]]; then
+  echo "using existing Social Messenger distribution file $SOCIAL_MESSENGER_DIST_FILE"
+else
+  echo "downloading Social Messenger distribution file"
+  curl -o $SOCIAL_MESSENGER_DIST_FILE -L $SOCIAL_MESSENGER_DIST_SRC
+fi
+
+# TODO: Corporate search
 
 
 # base on schub java image
@@ -107,18 +139,18 @@ sudo docker exec -i -t $LIFERAY_CONTAINER_NAME apt-get install -y --force-yes im
 # TODO: are names still important at this stage?
 echo "Deploying Liferay Plugins and database driver"
 sudo docker cp $ACTIVITYSTREAMS_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/activitystreams.mod-1.0.0.jar
-#sudo docker cp $CAS_SSO_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/CASClearPass-7.0.0-b6.war
-sudo docker cp $SHINDIG_PORTLETS_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/shindig-7.0.0-b6.war
-
-# TODO: christian's plugins
-
-
-# TODO: makeshift plugins? (bpmn upload, elasticsearch dummy)
-
+sudo docker cp $CAS_SSO_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/casclearpassws-1.0.0.jar
+sudo docker cp $SHINDIG_PORTLETS_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/shindig-7.0.1.war
+sudo docker cp $ASSET_EXPORT_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/AssetExportTool-7.0.1-ga2.war
+sudo docker cp $SOCIAL_MESSENGER_DIST_FILE $LIFERAY_CONTAINER_NAME:/resources/SocialMessenger-7.0.1-ga2.war
+# TODO: corporate search
 
 # inject database driver
 sudo docker cp $MARIADB_DRIVER_FILE $LIFERAY_CONTAINER_NAME:/home/liferay/tomcat-$TOMCAT_VERSION/lib/ext/mariadb-java-client.jar
 
+# inject json dependency for ActivityStreams
+sudo docker exec -i -t $LIFERAY_CONTAINER_NAME sh -c "mkdir -p /home/liferay/osgi/modules/"
+sudo docker exec -i -t $LIFERAY_CONTAINER_NAME sh -c "cd /home/liferay/osgi/modules/ && wget $JSON_LIBRARY_SRC"
 
 # templates, scripts
 echo "Inserting configuration templates and scripts"

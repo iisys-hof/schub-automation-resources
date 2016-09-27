@@ -1,0 +1,5 @@
+default:
+    host: all
+
+    loginLocation: 'INSERT_OX_CAS_AUTH_URL_HERE'
+    logoutLocation: 'INSERT_CAS_URL_HERElogout'

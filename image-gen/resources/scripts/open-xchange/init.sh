@@ -39,6 +39,10 @@ CAS_SSO_CONF_BUN="/opt/open-xchange/bundles/de.hofuniversity.iisys.ox.sso/conf/c
 CAS_SSO_CONF_TEMPLATE="/templates/cas-sso.properties"
 CAS_SSO_CONF_TMP="/tmp/cas-sso.properties"
 
+APPSUITE_CONF="/opt/open-xchange/etc/as-config.yml"
+APPSUITE_CONF_TEMPLATE="/templates/as-config.yml"
+APPSUITE_CONF_TMP="/tmp/as-config.yml"
+
 SSL_CONFIG_SRC="/templates/default-ssl.conf"
 SSL_CONFIG_DEST="/etc/apache2/sites-enabled/default-ssl.conf"
 SSL_SRC_DIR="/ssl"
@@ -255,6 +259,12 @@ cat $CAS_SSO_CONF_TEMPLATE | sed \
         -e "s!INSERT_CLEARPASS_CALLBACK_URL_HERE!$CLEARPASS_CALLBACK!" \
         > $CAS_SSO_CONF_TMP
 
+# set "external" login/logout URLs
+cat $APPSUITE_CONF_TEMPLATE | sed \
+        -e "s!INSERT_OX_CAS_AUTH_URL_HERE!$OX_CAS_AUTH_URL!" \
+        -e "s!INSERT_CAS_URL_HERE!$CAS_URL!" \
+        > $APPSUITE_CONF_TMP
+
 
 # TODO: CMIS plugin
 
@@ -275,12 +285,14 @@ cp $ACTIVITYSTREAMS_CONF_TMP $ACTIVITYSTREAMS_CONF_ETC
 cp $ACTIVITYSTREAMS_CONF_TMP $ACTIVITYSTREAMS_CONF_BUN
 cp $CAS_SSO_CONF_TMP $CAS_SSO_CONF_ETC
 cp $CAS_SSO_CONF_TMP $CAS_SSO_CONF_BUN
+cp $APPSUITE_CONF_TMP $APPSUITE_CONF
 
 # remove temporary files
 echo "Removing temporary files"
 rm $LDAP_CONF_TMP
 rm $ACTIVITYSTREAMS_CONF_TMP
 rm $CAS_SSO_CONF_TMP
+rm $APPSUITE_CONF_TMP
 
 ## determine if database has already been initialized
 TABLE_COUNT="$(mysql -u $DB_USER -h $DB_HOST -P $DB_PORT -p$DB_PASSWORD -e "SELECT COUNT(DISTINCT 'table_name') FROM information_schema.columns WHERE table_schema = '$DB_NAME';" | tail -1)"

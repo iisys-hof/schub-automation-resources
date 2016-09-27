@@ -10,7 +10,7 @@ OX_ACTIVITYSTREAMS_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/open-xchange-activitystr
 
 OX_ACTIVITYSTREAMS_DIST_FILE=$BINARY_REPO_DIRECTORY/open-xchange-activitystreams.tar.gz
 
-OX_CAS_SSO_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/open-xchange-cas-sso-7.8.0.tar.gz
+OX_CAS_SSO_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/open-xchange-cas-sso-7.8.1.tar.gz
 
 OX_CAS_SSO_DIST_FILE=$BINARY_REPO_DIRECTORY/open-xchange-cas-sso.tar.gz
 

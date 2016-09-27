@@ -4,7 +4,8 @@
 echo "reading global configuration"
 source ./config.sh
 
-WSS_DISTRIBUTION_SRC=$REPO_SERVER/$SOFTWARE_REPO/websocket-server-0.5.2-2.5.2-13.tar.gz
+# websocket server with shindig serverroutines in a folder called "websocket-server" in a tar.gz
+WSS_DISTRIBUTION_SRC=$REPO_SERVER/$SOFTWARE_REPO/websocket-server-0.5.2-2.5.2-15.tar.gz
 
 WSS_DISTRIBUTION_FILE=$BINARY_REPO_DIRECTORY/websocket-server.tar.gz
 

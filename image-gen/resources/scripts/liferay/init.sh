@@ -40,21 +40,34 @@ ACTIVITYSTREAMS_SRC="/resources/activitystreams.mod-1.0.0.jar"
 ACTIVITYSTREAMS_TMP_DIR="/tmp/activitystreams/"
 ACTIVITYSTREAMS_DEST="/home/liferay/deploy/activitystreams.mod-1.0.0.jar"
 
-# not compatible anymore
-#CAS_CLEARPASS_WAR="CASClearPass-7.0.0-b6.war"
-#CAS_CLEARPASS_PROPS="/templates/cas_autologin.properties"
-#CAS_CLEARPASS_PORTAL_PROPS="/templates/cas_autologin_portal.properties"
-#CAS_CLEARPASS_SRC="/resources/CASClearPass-7.0.0-b6.war"
-#CAS_CLEARPASS_TMP_DIR="/tmp/CASClearPass/"
-#CAS_CLEARPASS_DEST="/home/liferay/deploy/CASClearPass-7.0.0-b6.war"
+CAS_CLEARPASS_JAR="casclearpassws-1.0.0.jar"
+CAS_CLEARPASS_PROPS="/templates/cas_autologin.properties"
+CAS_CLEARPASS_PORTAL_PROPS="/templates/cas_autologin_portal.properties"
+CAS_CLEARPASS_SRC="/resources/casclearpassws-1.0.0.jar"
+CAS_CLEARPASS_TMP_DIR="/tmp/CASClearPass/"
+CAS_CLEARPASS_DEST="/home/liferay/deploy/casclearpassws-1.0.0.jar"
 
 SHINDIG_TOKEN_FILE="/home/liferay/token.txt"
 
-SHINDIG_PORTLETS_WAR="shindig-7.0.0-b6.war"
+SHINDIG_PORTLETS_WAR="shindig-7.0.1.war"
 SHINDIG_PORTLETS_PROPS="/templates/shindig-portlet.properties"
-SHINDIG_PORTLETS_SRC="/resources/shindig-7.0.0-b6.war"
+SHINDIG_PORTLETS_SRC="/resources/shindig-7.0.1.war"
 SHINDIG_PORTLETS_TMP_DIR="/tmp/shindig-portlets/"
-SHINDIG_PORTLETS_DEST="/home/liferay/deploy/shindig-7.0.0-b6.war"
+SHINDIG_PORTLETS_DEST="/home/liferay/deploy/shindig-7.0.1.war"
+
+ASSET_EXPORT_WAR="AssetExportTool-7.0.1-ga2.war"
+ASSET_EXPORT_PROPS="/templates/asset-export-portlet.properties"
+ASSET_EXPORT_SRC="/resources/AssetExportTool-7.0.1-ga2.war"
+ASSET_EXPORT_TMP_DIR="/tmp/asset-export-tool/"
+ASSET_EXPORT_DEST="/home/liferay/deploy/AssetExportTool-7.0.1-ga2.war"
+
+SOCIAL_MESSENGER_WAR="SocialMessenger-7.0.1-ga2.war"
+SOCIAL_MESSENGER_PROPS="/templates/social-messenger-portlet.properties"
+SOCIAL_MESSENGER_SRC="/resources/SocialMessenger-7.0.1-ga2.war"
+SOCIAL_MESSENGER_TMP_DIR="/tmp/social-messenger/"
+SOCIAL_MESSENGER_DEST="/home/liferay/deploy/SocialMessenger-7.0.1-ga2.war"
+
+# TODO: Corporate Search
 
 TOMCAT_SCRIPT="/home/liferay/tomcat-$TOMCAT_VERSION/bin/catalina.sh"
 TOMCAT_SCRIPT_TMP="/tmp/catalina.sh"
@@ -341,27 +354,27 @@ rm -r $ACTIVITYSTREAMS_TMP_DIR
 
 
 # configure CAS ClearPass SSO plugin
-#echo "Configuring CAS SSO plugin"
-#mkdir -p $CAS_CLEARPASS_TMP_DIR
-#cp $CAS_CLEARPASS_SRC $CAS_CLEARPASS_TMP_DIR/$CAS_CLEARPASS_WAR
-#cd $CAS_CLEARPASS_TMP_DIR
+echo "Configuring CAS SSO plugin"
+mkdir -p $CAS_CLEARPASS_TMP_DIR
+cp $CAS_CLEARPASS_SRC $CAS_CLEARPASS_TMP_DIR/$CAS_CLEARPASS_JAR
+cd $CAS_CLEARPASS_TMP_DIR
 # unpack
-#unzip $CAS_CLEARPASS_WAR
-#rm $CAS_CLEARPASS_WAR
+unzip $CAS_CLEARPASS_JAR
+rm $CAS_CLEARPASS_JAR
 # reconfigure
-#cat $CAS_CLEARPASS_PROPS | sed \
-#        -e "s!INSERT_CAS_SERVER_URL_HERE!$CAS_SERVER_URL!" \
-#        -e "s!INSERT_CAS_CLEARPASS_URL_HERE!$CAS_CLEARPASS_URL!" \
-#        -e "s!INSERT_LIFERAY_LOGIN_URL_HERE!$LIFERAY_LOGIN_URL!" \
-#        -e "s!INSERT_PGT_CALLBACK_URL_HERE!$PGT_CALLBACK_URL!" \
-#        > WEB-INF/classes/cas_autologin.properties
-#cat $CAS_CLEARPASS_PORTAL_PROPS | sed \
-#        -e "s!INSERT_CAS_LOGOUT_URL_HERE!$CAS_LOGOUT_URL!" \
-#        > WEB-INF/classes/portal.properties
+cat $CAS_CLEARPASS_PROPS | sed \
+        -e "s!INSERT_CAS_SERVER_URL_HERE!$CAS_SERVER_URL!" \
+        -e "s!INSERT_CAS_CLEARPASS_URL_HERE!$CAS_CLEARPASS_URL!" \
+        -e "s!INSERT_LIFERAY_LOGIN_URL_HERE!$LIFERAY_LOGIN_URL!" \
+        -e "s!INSERT_PGT_CALLBACK_URL_HERE!$PGT_CALLBACK_URL!" \
+        > cas_autologin.properties
+cat $CAS_CLEARPASS_PORTAL_PROPS | sed \
+        -e "s!INSERT_CAS_LOGOUT_URL_HERE!$CAS_LOGOUT_URL!" \
+        > portal.properties
 # repackage and insert into Liferay
-#jar cf $CAS_CLEARPASS_WAR -C . .
-#cp $CAS_CLEARPASS_WAR $CAS_CLEARPASS_DEST
-#rm -r $CAS_CLEARPASS_TMP_DIR
+jar cmf META-INF/MANIFEST.MF $CAS_CLEARPASS_JAR -C . .
+cp $CAS_CLEARPASS_JAR $CAS_CLEARPASS_DEST
+rm -r $CAS_CLEARPASS_TMP_DIR
 
 
 # configure Shindig portlets
@@ -384,6 +397,46 @@ cat $SHINDIG_PORTLETS_PROPS | sed \
 jar cf $SHINDIG_PORTLETS_WAR -C . .
 cp $SHINDIG_PORTLETS_WAR $SHINDIG_PORTLETS_DEST
 rm -r $SHINDIG_PORTLETS_TMP_DIR
+
+
+echo "Configuring Asset Export Tool"
+mkdir -p $ASSET_EXPORT_TMP_DIR
+cp $ASSET_EXPORT_SRC $ASSET_EXPORT_TMP_DIR/$ASSET_EXPORT_WAR
+cd $ASSET_EXPORT_TMP_DIR
+# unpack
+unzip $ASSET_EXPORT_WAR
+# reconfigure
+cat $ASSET_EXPORT_PROPS | sed \
+        -e "s!INSERT_NUXEO_URL_HERE!$NUXEO_URL!" \
+        -e "s/INSERT_NUXEO_CMIS_USER_HERE/$NUXEO_CMIS_USER/" \
+        -e "s/INSERT_NUXEO_CMIS_PASSWORD_HERE/$NUXEO_CMIS_PASSWORD/" \
+        > WEB-INF/classes/portlet.properties
+# repackage and insert into Liferay
+jar cf $ASSET_EXPORT_WAR -C . .
+cp $ASSET_EXPORT_WAR $ASSET_EXPORT_DEST
+rm -r $ASSET_EXPORT_TMP_DIR
+
+
+echo "Configuring Social Messenger"
+mkdir -p $SOCIAL_MESSENGER_TMP_DIR
+cp $SOCIAL_MESSENGER_SRC $SOCIAL_MESSENGER_TMP_DIR/$SOCIAL_MESSENGER_WAR
+cd $SOCIAL_MESSENGER_TMP_DIR
+# unpack
+unzip $SOCIAL_MESSENGER_WAR
+rm $SOCIAL_MESSENGER_WAR
+# reconfigure
+cat $SOCIAL_MESSENGER_PROPS | sed \
+        -e "s!INSERT_LIFERAY_URL_HERE!$LIFERAY_URL!" \
+        -e "s!INSERT_SHINDIG_URL_HERE!$SHINDIG_URL!" \
+        > WEB-INF/classes/portlet.properties
+# repackage and insert into Liferay
+jar cf $SOCIAL_MESSENGER_WAR -C . .
+cp $SOCIAL_MESSENGER_WAR $SOCIAL_MESSENGER_DEST
+rm -r $SOCIAL_MESSENGER_TMP_DIR
+
+
+#echo "Configuring Corporate Search"
+# TODO: configure corporate search
 
 
 # tomcat configuration
