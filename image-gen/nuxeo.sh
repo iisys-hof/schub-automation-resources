@@ -18,14 +18,6 @@ CAMUNDA_OPS_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/nuxeo/nux
 
 CAMUNDA_OPS_DIST_FILE=$BINARY_REPO_DIRECTORY/nuxeo-camunda-operations.jar
 
-SCHUB_STUDIO_PROJECT_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/nuxeo/nuxeo-schub-studio-project/7.10/nuxeo-schub-studio-project-7.10.jar
-
-SCHUB_STUDIO_PROJECT_DIST_FILE=$BINARY_REPO_DIRECTORY/nuxeo-schub-studio-project.jar
-
-CSTROBEL_STUDIO_PROJECT_DIST_SRC=$REPO_SERVER/$LIBRARY_REPO/de/hofuniversity/iisys/nuxeo/studio-project-cstrobel/7.10/studio-project-cstrobel-7.10.jar
-
-CSTROBEL_STUDIO_PROJECT_DIST_FILE=$BINARY_REPO_DIRECTORY/nuxeo-studio-project-cstrobel.jar
-
 NUXEO_CONTAINER_NAME=nuxeo-build
 
 NUXEO_IMAGE_NAME=schub/nuxeo
@@ -59,22 +51,6 @@ else
   curl -o $CAMUNDA_OPS_DIST_FILE -L $CAMUNDA_OPS_DIST_SRC
 fi
 
-# download SCHub Studio Project
-if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $SCHUB_STUDIO_PROJECT_DIST_FILE ]]; then
-  echo "using existing SCHub Studio Project distribution file $CSTROBEL_STUDIO_PROJECT_DIST_FILE"
-else
-  echo "downloading SCHub Studio Project distribution file"
-  curl -o $SCHUB_STUDIO_PROJECT_DIST_FILE -L $SCHUB_STUDIO_PROJECT_DIST_SRC
-fi
-
-# download Studio Project by cstrobel
-if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $CSTROBEL_STUDIO_PROJECT_DIST_FILE ]]; then
-  echo "using existing Studio Project by cstrobel distribution file $CSTROBEL_STUDIO_PROJECT_DIST_FILE"
-else
-  echo "downloading Studio Project by cstrobel distribution file"
-  curl -o $CSTROBEL_STUDIO_PROJECT_DIST_FILE -L $CSTROBEL_STUDIO_PROJECT_DIST_SRC
-fi
-
 
 # base on schub java image
 echo "Creating temporary build container $NUXEO_CONTAINER_NAME"
@@ -102,12 +78,10 @@ sudo docker exec -i -t $NUXEO_CONTAINER_NAME sh -c "cd /var/lib/nuxeo/server/nxs
 # plugins (still need to be configured and injected)
 sudo docker cp $ACTIVITYSTREAMS_DIST_FILE $NUXEO_CONTAINER_NAME:/resources/
 sudo docker cp $CAMUNDA_OPS_DIST_FILE $NUXEO_CONTAINER_NAME:/resources/
-sudo docker cp $SCHUB_STUDIO_PROJECT_DIST_FILE $NUXEO_CONTAINER_NAME:/resources/
 
 # plugins that don't need to be configured
 sudo docker exec -i -t $NUXEO_CONTAINER_NAME mkdir /var/lib/nuxeo/server/nxserver/plugins/
 sudo docker exec -i -t $NUXEO_CONTAINER_NAME chown -R nuxeo:nuxeo /var/lib/nuxeo/server/nxserver/plugins/
-sudo docker cp $CSTROBEL_STUDIO_PROJECT_DIST_FILE $NUXEO_CONTAINER_NAME:/var/lib/nuxeo/server/nxserver/plugins/
 
 
 # inject database driver

@@ -21,12 +21,6 @@ CAMUNDA_OPS_SRC="/resources/nuxeo-camunda-operations.jar"
 CAMUNDA_OPS_TMP_DIR="/tmp/camunda-operations/"
 CAMUNDA_OPS_DEST="/var/lib/nuxeo/server/nxserver/plugins/nuxeo-camunda-operations.jar"
 
-STUDIO_PROJECT_JAR="nuxeo-schub-studio-project.jar"
-STUDIO_PROJECT_TAB="/templates/studio_tab_extWorkflowTab.xhtml"
-STUDIO_PROJECT_SRC="/resources/nuxeo-schub-studio-project.jar"
-STUDIO_PROJECT_TMP_DIR="/tmp/schub-studio-project/"
-STUDIO_PROJECT_DEST="/var/lib/nuxeo/server/nxserver/plugins/nuxeo-schub-studio-project.jar"
-
 KEYSTORE_DEST="/var/lib/nuxeo/server/conf/keystore"
 KEYSTORE_SRC="/ssl/keystore"
 
@@ -230,29 +224,6 @@ jar cmf META-INF/MANIFEST.MF $CAMUNDA_OPS_JAR -C . .
 cp $CAMUNDA_OPS_JAR $CAMUNDA_OPS_DEST
 rm -r $CAMUNDA_OPS_TMP_DIR
 
-
-# Studio Project
-echo "Configuring iisys Nuxeo Studio project"
-mkdir -p $STUDIO_PROJECT_TMP_DIR
-cd $STUDIO_PROJECT_TMP_DIR
-cp $STUDIO_PROJECT_SRC $STUDIO_PROJECT_TMP_DIR/$STUDIO_PROJECT_JAR
-# unpack
-unzip $STUDIO_PROJECT_JAR
-rm $STUDIO_PROJECT_JAR
-# reconfigure
-cat $STUDIO_PROJECT_TAB | sed \
-        -e "s!INSERT_CAMUNDA_REST_URL_HERE!$CAMUNDA_REST_URL!" \
-        -e "s!INSERT_CAMUNDA_URL_HERE!$CAMUNDA_URL!" \
-        -e "s!INSERT_BPMN_JS_UTILS_URL_HERE!$BPMN_JS_UTILS_URL!" \
-        -e "s!INSERT_PROCESS_BASE_URL_HERE!$PROCESS_BASE_URL!" \
-        -e "s!INSERT_NUXEO_URL_HERE!$NUXEO_URL!" \
-        -e "s!INSERT_SHINDIG_URL_HERE!$SHINDIG_URL!" \
-        -e "s!INSERT_PROFILE_URL_HERE!$PROFILE_URL!" \
-        > web/nuxeo.war/studio_tabs/studio_tab_extWorkflowTab.xhtml
-# repackage and insert into Nuxeo
-jar cmf META-INF/MANIFEST.MF $STUDIO_PROJECT_JAR -C . .
-cp $STUDIO_PROJECT_JAR $STUDIO_PROJECT_DEST
-rm -r $STUDIO_PROJECT_TMP_DIR
 
 # insert keystore
 echo "Inserting keystore and new configuration files"
