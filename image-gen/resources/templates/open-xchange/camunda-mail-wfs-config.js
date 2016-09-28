@@ -1,0 +1,1 @@
+define("de.iisys.ox.camunda-email-workflows/config",[],function(){var a={CAMUNDA_URL:"INSERT_CAMUNDA_REST_URL_HERE",CAMUNDA_KEY_STARTING_WITH:"ox-",PROCESS_VAR_MAIL_CID_NAME:"mailCid",PROCESS_VAR_MAIL_CONTENT_NAME:"mailContent"};return a});

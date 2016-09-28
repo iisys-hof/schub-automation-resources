@@ -1,0 +1,1 @@
+define("de.iisys.ox.camunda-tasks/config",[],function(){var a={CAMUNDA_URL:"INSERT_CAMUNDA_REST_URL_HERE",LIFERAY_URL:"INSERT_LIFERAY_URL_HERE",USE_DUMMY_TASKS:!0};return a});

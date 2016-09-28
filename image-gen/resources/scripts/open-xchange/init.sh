@@ -39,6 +39,14 @@ CAS_SSO_CONF_BUN="/opt/open-xchange/bundles/de.hofuniversity.iisys.ox.sso/conf/c
 CAS_SSO_CONF_TEMPLATE="/templates/cas-sso.properties"
 CAS_SSO_CONF_TMP="/tmp/cas-sso.properties"
 
+OX_CAMUNDA_MAIL_WFS_CONF="/opt/open-xchange/appsuite/apps/de.iisys.ox.camunda-email-workflows/config.js"
+OX_CAMUNDA_MAIL_WFS_CONF_TEMPLATE="/templates/camunda-mail-wfs-config.js"
+OX_CAMUNDA_MAIL_WFS_CONF_TMP="/tmp/camunda-mail-wfs-config.js"
+
+OX_CAMUNDA_TASKS_CONF="/opt/open-xchange/appsuite/apps/de.iisys.ox.camunda-tasks/config.js"
+OX_CAMUNDA_TASKS_CONF_TEMPLATE="/templates/camunda-tasks-config.js"
+OX_CAMUNDA_TASKS_CONF_TMP="/tmp/camunda-tasks-config.js"
+
 APPSUITE_CONF="/opt/open-xchange/etc/as-config.yml"
 APPSUITE_CONF_TEMPLATE="/templates/as-config.yml"
 APPSUITE_CONF_TMP="/tmp/as-config.yml"
@@ -185,6 +193,16 @@ if [ -z "$CLEARPASS_CALLBACK" ]; then
         echo "WARNING: No CAS clearpass callback url supplied, using default: $CLEARPASS_CALLBACK"
 fi
 
+if [ -z "$CAMUNDA_REST_URL" ]; then
+        CAMUNDA_REST_URL=http://127.0.0.1:8080/engine-rest
+        echo "WARNING: No Camunda REST engine url supplied, using default: $CAMUNDA_REST_URL"
+fi
+
+if [ -z "$LIFERAY_URL" ]; then
+        LIFERAY_URL=http://127.0.0.1:8080
+        echo "WARNING: No Liferay url supplied, using default: $LIFERAY_URL"
+fi
+
 
 ## replace variables in template
 
@@ -266,6 +284,18 @@ cat $APPSUITE_CONF_TEMPLATE | sed \
         > $APPSUITE_CONF_TMP
 
 
+echo "Configuring E-Mail Camunda Workflows Plugin"
+cat $OX_CAMUNDA_MAIL_WFS_CONF_TEMPLATE | sed \
+        -e "s!INSERT_CAMUNDA_REST_URL_HERE!$CAMUNDA_REST_URL!" \
+        > $OX_CAMUNDA_MAIL_WFS_CONF_TMP
+
+echo "Configuring Camunda Tasklist Plugin"
+cat $OX_CAMUNDA_TASKS_CONF_TEMPLATE | sed \
+        -e "s!INSERT_CAMUNDA_REST_URL_HERE!$CAMUNDA_REST_URL!" \
+        -e "s!INSERT_LIFERAY_URL_HERE!$LIFERAY_URL!" \
+        > $OX_CAMUNDA_TASKS_CONF_TMP
+
+
 # TODO: CMIS plugin
 
 
@@ -286,6 +316,8 @@ cp $ACTIVITYSTREAMS_CONF_TMP $ACTIVITYSTREAMS_CONF_BUN
 cp $CAS_SSO_CONF_TMP $CAS_SSO_CONF_ETC
 cp $CAS_SSO_CONF_TMP $CAS_SSO_CONF_BUN
 cp $APPSUITE_CONF_TMP $APPSUITE_CONF
+cp $OX_CAMUNDA_MAIL_WFS_CONF_TMP $OX_CAMUNDA_MAIL_WFS_CONF
+cp $OX_CAMUNDA_TASKS_CONF_TMP $OX_CAMUNDA_TASKS_CONF
 
 # remove temporary files
 echo "Removing temporary files"
@@ -293,6 +325,8 @@ rm $LDAP_CONF_TMP
 rm $ACTIVITYSTREAMS_CONF_TMP
 rm $CAS_SSO_CONF_TMP
 rm $APPSUITE_CONF_TMP
+rm $OX_CAMUNDA_MAIL_WFS_CONF_TMP
+rm $OX_CAMUNDA_TASKS_CONF_TMP
 
 ## determine if database has already been initialized
 TABLE_COUNT="$(mysql -u $DB_USER -h $DB_HOST -P $DB_PORT -p$DB_PASSWORD -e "SELECT COUNT(DISTINCT 'table_name') FROM information_schema.columns WHERE table_schema = '$DB_NAME';" | tail -1)"

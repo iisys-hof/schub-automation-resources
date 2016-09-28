@@ -31,6 +31,8 @@
         { "key": "env", "value": "CAS_CLEARPASS_URL=INSERT_CAS_CLEARPASS_URL_HERE" },
         { "key": "env", "value": "OX_CAS_AUTH_URL=INSERT_OX_CAS_AUTH_URL_HERE" },
         { "key": "env", "value": "CLEARPASS_CALLBACK=INSERT_CLEARPASS_CALLBACK_HERE" },
+        { "key": "env", "value": "CAMUNDA_REST_URL=INSERT_CAMUNDA_REST_URL_HERE" },
+        { "key": "env", "value": "LIFERAY_URL=INSERT_LIFERAY_URL_HERE" },
         { "key": "env", "value": "ADMIN_MAIL=INSERT_ADMIN_MAIL_HERE" },
         { "key": "env", "value": "ADMIN_PASSWORD=INSERT_ADMIN_PASSWORD_HERE" },
         { "key": "env", "value": "IMAP_SERVER=INSERT_IMAP_SERVER_HERE" },

@@ -7,12 +7,18 @@ source ./config.sh
 ## basic configuration
 
 OX_ACTIVITYSTREAMS_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/open-xchange-activitystreams-7.8.0.tar.gz
-
 OX_ACTIVITYSTREAMS_DIST_FILE=$BINARY_REPO_DIRECTORY/open-xchange-activitystreams.tar.gz
 
 OX_CAS_SSO_DIST_SRC=$REPO_SERVER/$SOFTWARE_REPO/open-xchange-cas-sso-7.8.1.tar.gz
-
 OX_CAS_SSO_DIST_FILE=$BINARY_REPO_DIRECTORY/open-xchange-cas-sso.tar.gz
+
+OX_CAMUNDA_MAIL_WFS_SRC=$REPO_SERVER/$SOFTWARE_REPO/ox-camunda-email-workflows_0.0.0-1_all.deb
+OX_CAMUNDA_MAIL_WFS_DIST_FILE=$BINARY_REPO_DIRECTORY/ox-camunda-email-workflows.deb
+
+OX_CAMUNDA_TASKS_SRC=$REPO_SERVER/$SOFTWARE_REPO/ox-camunda-tasks_0.0.0-1_all.deb
+OX_CAMUNDA_TASKS_DIST_FILE=$BINARY_REPO_DIRECTORY/ox-camunda-tasks.deb
+
+# TODO: CMIS plugin
 
 OX_CONTAINER_NAME=open-xchange-build
 
@@ -39,6 +45,22 @@ if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $OX_CAS_SSO_DIST_FILE ]]; t
 else
   echo "downloading Open-Xchange CAS SSO bundle distribution file"
   curl -o $OX_CAS_SSO_DIST_FILE $OX_CAS_SSO_DIST_SRC
+fi
+
+# download E-Mail Camunda Workflows package
+if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $OX_CAMUNDA_MAIL_WFS_DIST_FILE ]]; then
+  echo "using existing E-Mail Camunda Workflows package file $OX_CAMUNDA_MAIL_WFS_DIST_FILE"
+else
+  echo "downloading E-Mail Camunda Workflows package distribution file"
+  curl -o $OX_CAMUNDA_MAIL_WFS_DIST_FILE $OX_CAMUNDA_MAIL_WFS_SRC
+fi
+
+# download Tasklist Camunda plugin package
+if [[ "$FORCE_SOURCE_DOWNLOAD" != "true" ]] && [[ -e $OX_CAMUNDA_TASKS_DIST_FILE ]]; then
+  echo "using existing Tasklist Camunda plugin file $OX_CAMUNDA_TASKS_DIST_FILE"
+else
+  echo "downloading Tasklist Camunda plugin distribution file"
+  curl -o $OX_CAMUNDA_TASKS_DIST_FILE $OX_CAMUNDA_TASKS_SRC
 fi
 
 # base on schub java image
@@ -72,6 +94,17 @@ sudo docker exec -i -t $OX_CONTAINER_NAME mkdir /home/open-xchange/
 sudo docker exec -i -t $OX_CONTAINER_NAME mkdir $OX_FILESTORE_DIRECTORY
 sudo docker exec -i -t $OX_CONTAINER_NAME chown -R open-xchange:open-xchange /home/open-xchange/
 sudo docker exec -i -t $OX_CONTAINER_NAME chown -R open-xchange:open-xchange $OX_FILESTORE_DIRECTORY
+
+# install plugin packages
+echo "Installing E-Mail Camunda Workflows plugin"
+sudo docker cp $OX_CAMUNDA_MAIL_WFS_DIST_FILE $OX_CONTAINER_NAME:/ox-camunda-email-workflows.deb
+sudo docker exec -i -t $OX_CONTAINER_NAME dpkg -i /ox-camunda-email-workflows.deb
+sudo docker exec -i -t $OX_CONTAINER_NAME rm /ox-camunda-email-workflows.deb
+
+echo "Installing Tasklist Camunda plugin"
+sudo docker cp $OX_CAMUNDA_TASKS_DIST_FILE $OX_CONTAINER_NAME:/ox-camunda-tasks.deb
+sudo docker exec -i -t $OX_CONTAINER_NAME dpkg -i /ox-camunda-tasks.deb
+sudo docker exec -i -t $OX_CONTAINER_NAME rm /ox-camunda-tasks.deb
 
 # setup apache
 echo "Reconfiguring Apache Httpd Server"
